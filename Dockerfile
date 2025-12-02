@@ -60,6 +60,24 @@ COPY . /var/www/html
 # Optimize autoloader
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
+# Create production .env file (since .env is gitignored)
+RUN echo 'APP_ENV=prod' > .env \
+    && echo 'APP_SECRET=${APP_SECRET:-changeme_generate_a_real_secret_key}' >> .env \
+    && echo 'DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/dbname}' >> .env \
+    && echo 'MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}' >> .env \
+    && echo 'MAILER_DSN=${MAILER_DSN:-null://null}' >> .env \
+    && echo 'JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem' >> .env \
+    && echo 'JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem' >> .env \
+    && echo 'JWT_PASSPHRASE=${JWT_PASSPHRASE:-}' >> .env \
+    && echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}' >> .env \
+    && echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}' >> .env \
+    && echo 'GOOGLE_API_KEY=${GOOGLE_API_KEY:-}' >> .env \
+    && echo 'MAILER_FROM_EMAIL=${MAILER_FROM_EMAIL:-noreply@example.com}' >> .env \
+    && echo 'MAILER_FROM_NAME=${MAILER_FROM_NAME:-Symfony App}' >> .env \
+    && echo 'RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY:-}' >> .env \
+    && echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}' >> .env \
+    && echo 'LOCK_DSN=${LOCK_DSN:-flock}' >> .env
+
 # Create directories and set permissions
 RUN mkdir -p var/cache var/log var/sessions \
     && chown -R www-data:www-data /var/www/html \

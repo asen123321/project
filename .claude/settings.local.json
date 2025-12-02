@@ -30,7 +30,10 @@
       "Bash(if [ -f \"/home/needy/project2/.gitignore\" ])",
       "Bash(then cat /home/needy/project2/.gitignore)",
       "Bash(else echo \"No .gitignore found\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(if [ -f \"/home/needy/project2/.env\" ])",
+      "Bash(then echo \".env exists\")",
+      "Bash(else echo \".env NOT FOUND\")"
     ],
     "deny": [],
     "ask": []
