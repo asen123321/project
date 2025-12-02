@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if action == 'approve' %}Booking Approved{% else %}Booking Rejected{% endif %} - Hair Salon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .header {
+            background: {% if action == 'approve' %}linear-gradient(135deg, #10b981 0%, #059669 100%){% else %}linear-gradient(135deg, #ef4444 0%, #dc2626 100%){% endif %};
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .message {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .booking-summary {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .booking-summary h2 {
+            color: #667eea;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .detail-value {
+            color: #111827;
+            text-align: right;
+        }
+        .info-box {
+            background: {% if action == 'approve' %}#d1fae5{% else %}#fee2e2{% endif %};
+            border-left: 4px solid {% if action == 'approve' %}#10b981{% else %}#ef4444{% endif %};
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .info-box strong {
+            color: {% if action == 'approve' %}#065f46{% else %}#991b1b{% endif %};
+            display: block;
+            margin-bottom: 10px;
+        }
+        .info-box p {
+            color: {% if action == 'approve' %}#047857{% else %}#b91c1c{% endif %};
+            margin: 0;
+        }
+        .footer {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .already-processed {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .already-processed strong {
+            color: #92400e;
+        }
+        .already-processed p {
+            color: #b45309;
+            margin: 10px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">
+                {% if action == 'approve' %}
+                    ✅
+                {% else %}
+                    ❌
+                {% endif %}
+            </div>
+            <h1>
+                {% if action == 'approve' %}
+                    Booking Approved!
+                {% else %}
+                    Booking Rejected
+                {% endif %}
+            </h1>
+            <p>
+                {% if action == 'approve' %}
+                    The appointment has been confirmed
+                {% else %}
+                    The booking request has been declined
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="content">
+            {% if already_processed|default(false) %}
+                <div class="already-processed">
+                    <strong>⚠️ Already Processed</strong>
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                <div class="info-box">
+                    <strong>
+                        {% if action == 'approve' %}
+                            ✓ What happens next:
+                        {% else %}
+                            ℹ️ What happens next:
+                        {% endif %}
+                    </strong>
+                    <p>{{ message }}</p>
+                </div>
+            {% endif %}
+
+            <div class="booking-summary">
+                <h2>📋 Booking Details</h2>
+                <div class="detail-row">
+                    <span class="detail-label">Client Name:</span>
+                    <span class="detail-value">{{ booking.clientName }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{ booking.clientEmail }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Service:</span>
+                    <span class="detail-value">{{ booking.service.name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Appointment Date:</span>
+                    <span class="detail-value">{{ booking.appointmentDate|date('l, F j, Y') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ booking.appointmentDate|date('g:i A') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Duration:</span>
+                    <span class="detail-value">{{ booking.service.durationMinutes }} minutes</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Price:</span>
+                    <span class="detail-value">${{ booking.service.price }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Stylist:</span>
+                    <span class="detail-value">{{ booking.stylist.name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">
+                        {% if booking.status == 'confirmed' %}
+                            <span style="color: #10b981; font-weight: bold;">✓ CONFIRMED</span>
+                        {% else %}
+                            <span style="color: #ef4444; font-weight: bold;">✗ CANCELLED</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="footer">
+                <a href="https://calendar.google.com" class="btn">
+                    {% if action == 'approve' %}
+                        📅 View in Google Calendar
+                    {% else %}
+                        🏠 Close This Window
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Качване на нова снимка{% endblock %}
+
+{% block body %}
+    <div class="container" style="padding-top: 120px; max-width: 800px; padding-bottom: 50px;">
+        <h1>Добави нова снимка</h1>
+
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-top: 20px;">
+            {{ form_start(form) }}
+
+            <div style="margin-bottom: 20px;">
+                {{ form_label(form.title, 'Заглавие на снимката', {'label_attr': {'style': 'display: block; margin-bottom: 8px; font-weight: bold;'}}) }}
+                {{ form_widget(form.title, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;'}}) }}
+                {{ form_errors(form.title) }}
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                {{ form_label(form.category, 'Категория', {'label_attr': {'style': 'display: block; margin-bottom: 8px; font-weight: bold;'}}) }}
+                {{ form_widget(form.category, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;'}}) }}
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                {{ form_label(form.imageFile, 'Избери файл', {'label_attr': {'style': 'display: block; margin-bottom: 8px; font-weight: bold;'}}) }}
+                {{ form_widget(form.imageFile, {'attr': {'style': 'padding: 10px; border: 1px dashed #ddd; width: 100%; background: #f9f9f9;'}}) }}
+                <div style="font-size: 0.9em; color: #666; margin-top: 5px;">Позволени формати: JPG, PNG. Макс размер: 5MB</div>
+                {{ form_errors(form.imageFile) }}
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                {# ИЗПОЛЗВАМЕ ОБИКНОВЕН HTML БУТОН ВМЕСТО WIDGET, ЗА ДА ИЗБЕГНЕМ ГРЕШКИ #}
+                <button type="submit" class="btn btn-primary" style="background-color: #d4af37; border: none; padding: 12px 30px; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Качи снимка
+                </button>
+
+                <a href="{{ path('admin_gallery_index') }}" style="display: inline-flex; align-items: center; text-decoration: none; color: #666; padding: 12px 20px; border: 1px solid #ddd; border-radius: 5px; background: white;">
+                    Отказ
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

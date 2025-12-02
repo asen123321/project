@@ -1,0 +1,433 @@
+{% extends 'salon_base.html.twig' %}
+
+{% block title %}Elegant Hair Salon - Where Beauty Meets Elegance{% endblock %}
+
+{% block body %}
+    {# Hero Section #}
+    <section class="hero" id="home">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Elegant Hair Salon</h1>
+            <p class="hero-subtitle">Where Beauty Meets Elegance</p>
+            <a href="{{ path('booking_index') }}" class="btn-primary">Book Your Appointment</a>
+        </div>
+        <div class="hero-scroll">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    {# Services Section #}
+    <section class="services-section" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Services</h2>
+                <p>Discover our range of premium hair care services</p>
+            </div>
+
+            <div class="services-grid">
+                {% for service in services %}
+                    <div class="service-card">
+                        <div class="service-image">
+                            <img src="{{ asset('uploads/services/' ~ service.imageFilename) }}" alt="{{ service.title }}">
+                            <div class="service-overlay">
+                                <div class="service-icon">
+                                    {# Използваме класа от базата, ако има, иначе default #}
+                                    <i class="{{ service.iconClass|default('fas fa-cut') }}"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="service-content">
+                            <h3>{{ service.title }}</h3>
+                            <p class="service-description">{{ service.description }}</p>
+                            <div class="service-meta">
+                                <div class="service-duration">
+                                    <i class="far fa-clock"></i>
+                                    <span>{{ service.duration }}</span>
+                                </div>
+                                <div class="service-price">
+                                    <span class="price-label">Starting at</span>
+                                    <span class="price-value">{{ service.price }}</span>
+                                </div>
+                            </div>
+                            <a href="{{ path('booking_index') }}" class="service-book-btn">Book Now</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <p>Няма добавени услуги в момента.</p>
+                {% endfor %}
+            </div>
+
+            {# ... CTA бутона отдолу ... #}
+        </div>
+    </section>
+    {# Our Team Section #}
+    <section class="team-section" id="team">
+        <div class="container">
+            <div class="section-header">
+                <h2>Meet Our Team</h2>
+                <p>Experienced professionals dedicated to your beauty</p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop" alt="Stylist 1">
+                        <div class="team-overlay">
+                            <div class="team-social">
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-info">
+                        <h3>Sarah Johnson</h3>
+                        <p class="team-role">Master Stylist</p>
+                        <p class="team-bio">15+ years of experience in cutting-edge hair design</p>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400&h=400&fit=crop" alt="Stylist 2">
+                        <div class="team-overlay">
+                            <div class="team-social">
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-info">
+                        <h3>Michael Chen</h3>
+                        <p class="team-role">Color Specialist</p>
+                        <p class="team-bio">Award-winning colorist with a passion for creativity</p>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop" alt="Stylist 3">
+                        <div class="team-overlay">
+                            <div class="team-social">
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-info">
+                        <h3>Emily Rodriguez</h3>
+                        <p class="team-role">Senior Stylist</p>
+                        <p class="team-bio">Specialist in contemporary cuts and bridal styling</p>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1595475884562-073c962f970f?w=400&h=400&fit=crop" alt="Stylist 4">
+                        <div class="team-overlay">
+                            <div class="team-social">
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-info">
+                        <h3>David Martinez</h3>
+                        <p class="team-role">Hair Artist</p>
+                        <p class="team-bio">Innovative stylist with expertise in modern techniques</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Dynamic Gallery Section #}
+    <section class="gallery-section" id="gallery">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Gallery</h2>
+                <p>Check out our latest work</p>
+            </div>
+
+            {# Филтри - работят с категориите от AdminGalleryController #}
+            <div class="gallery-filter">
+                <button class="filter-btn active" data-filter="all">All Work</button>
+                <button class="filter-btn" data-filter="haircut">Haircuts</button>
+                <button class="filter-btn" data-filter="coloring">Coloring</button>
+                <button class="filter-btn" data-filter="styling">Styling</button>
+                <button class="filter-btn" data-filter="manicure">Manicure</button>
+            </div>
+
+            <div class="gallery-grid">
+                {% for image in galleryImages %}
+                    <div class="gallery-item" data-category="{{ image.category }}">
+
+                        {# 1. Видимата част (Единична снимка) #}
+                        <div class="gallery-img-container" style="position: relative; overflow: hidden; border-radius: 15px; height: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                            <img src="{{ asset('uploads/gallery/' ~ image.filename) }}"
+                                 alt="{{ image.title }}"
+                                 style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;">
+
+                            <div class="gallery-overlay">
+                                <i class="fas fa-search-plus"></i>
+                                <p>{{ image.title }}</p>
+                            </div>
+                        </div>
+
+                        {#
+                        2. СКРИТА ЧАСТ ЗА JAVASCRIPT:
+                        Тук "лъжем" скрипта за Lightbox-а, като подаваме една и съща снимка
+                        за "преди" и "след". Скриваме контейнера с display:none, но данните са там.
+                        #}
+                        <div class="before-after-container" style="display: none;">
+                            <div class="before-image">
+                                <img src="{{ asset('uploads/gallery/' ~ image.filename) }}">
+                            </div>
+                            <div class="after-image">
+                                <img src="{{ asset('uploads/gallery/' ~ image.filename) }}">
+                            </div>
+                        </div>
+
+                    </div>
+                {% else %}
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                        <p>Все още няма качени снимки в галерията.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="gallery-cta">
+                <p>Follow us on Instagram for daily inspiration</p>
+                <a href="#" class="btn-secondary">
+                    <i class="fab fa-instagram"></i> @elegantsalon
+                </a>
+            </div>
+        </div>
+    </section>
+
+    {# Lightbox Modal #}
+    <div id="lightboxModal" class="lightbox-modal">
+        <span class="lightbox-close">&times;</span>
+        <button class="lightbox-prev">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="lightbox-next">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="lightbox-content">
+            <div class="lightbox-images">
+                <div class="lightbox-comparison">
+                    <div class="lightbox-before">
+                        <img id="lightboxBeforeImg" src="" alt="Before">
+                        <span class="lightbox-label">Before</span>
+                    </div>
+                    <div class="lightbox-after">
+                        <img id="lightboxAfterImg" src="" alt="After">
+                        <span class="lightbox-label">After</span>
+                    </div>
+                </div>
+            </div>
+            <div class="lightbox-info">
+                <h3 id="lightboxTitle">Transformation</h3>
+                <p id="lightboxCounter"></p>
+            </div>
+        </div>
+    </div>
+
+    {# Testimonials Section #}
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>What Our Clients Say</h2>
+                <p>Real reviews from real clients</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"The best salon experience I've ever had! Sarah understood exactly what I wanted and delivered beyond my expectations."</p>
+                    <div class="testimonial-author">
+                        <p class="author-name">Jennifer Smith</p>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Michael's color expertise is unmatched. I always leave feeling like a million dollars. Highly recommend!"</p>
+                    <div class="testimonial-author">
+                        <p class="author-name">Amanda Williams</p>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Absolutely love this place! The atmosphere is so relaxing and the results are always perfect. My go-to salon!"</p>
+                    <div class="testimonial-author">
+                        <p class="author-name">Lisa Anderson</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Contact Section #}
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Visit Our Salon</h2>
+                <p>We'd love to see you at our beautiful location</p>
+            </div>
+
+            <div class="contact-main-wrapper">
+                {# Left Side - Contact Information #}
+                <div class="contact-info-side">
+                    <div class="contact-info-card">
+                        <div class="contact-card-header">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h3>Location</h3>
+                        </div>
+                        <div class="contact-card-body">
+                            <p class="contact-address">
+                                123 Beauty Street<br>
+                                Downtown District<br>
+                                New York, NY 10001<br>
+                                United States
+                            </p>
+                            <a href="https://maps.google.com/?q=123+Beauty+Street+New+York+NY" target="_blank" class="contact-link">
+                                <i class="fas fa-directions"></i> Get Directions
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-card">
+                        <div class="contact-card-header">
+                            <i class="fas fa-clock"></i>
+                            <h3>Opening Hours</h3>
+                        </div>
+                        <div class="contact-card-body">
+                            <div class="hours-table">
+                                <div class="hours-row">
+                                    <span class="day">Monday - Friday</span>
+                                    <span class="time">9:00 AM - 8:00 PM</span>
+                                </div>
+                                <div class="hours-row">
+                                    <span class="day">Saturday</span>
+                                    <span class="time">9:00 AM - 6:00 PM</span>
+                                </div>
+                                <div class="hours-row">
+                                    <span class="day">Sunday</span>
+                                    <span class="time">10:00 AM - 5:00 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-card">
+                        <div class="contact-card-header">
+                            <i class="fas fa-phone-alt"></i>
+                            <h3>Contact Details</h3>
+                        </div>
+                        <div class="contact-card-body">
+                            <div class="contact-detail">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <span class="detail-label">Phone</span>
+                                    <a href="tel:+15551234567" class="detail-value">(555) 123-4567</a>
+                                </div>
+                            </div>
+                            <div class="contact-detail">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <span class="detail-label">Email</span>
+                                    <a href="mailto:info@elegantsalon.com" class="detail-value">info@elegantsalon.com</a>
+                                </div>
+                            </div>
+                            <div class="contact-detail">
+                                <i class="fas fa-mobile-alt"></i>
+                                <div>
+                                    <span class="detail-label">SMS Appointments</span>
+                                    <a href="sms:+15551234567" class="detail-value">(555) 123-4567</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-social-card">
+                        <h4>Follow Us</h4>
+                        <div class="contact-social-links">
+                            <a href="#" class="social-btn" aria-label="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                                <span>Facebook</span>
+                            </a>
+                            <a href="#" class="social-btn" aria-label="Instagram">
+                                <i class="fab fa-instagram"></i>
+                                <span>Instagram</span>
+                            </a>
+                            <a href="#" class="social-btn" aria-label="Twitter">
+                                <i class="fab fa-twitter"></i>
+                                <span>Twitter</span>
+                            </a>
+                            <a href="#" class="social-btn" aria-label="Pinterest">
+                                <i class="fab fa-pinterest"></i>
+                                <span>Pinterest</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {# Right Side - Google Maps #}
+                <div class="contact-map-side">
+                    <div class="map-container">
+                        <div class="map-header">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <h3>Find Us Here</h3>
+                        </div>
+                        <div class="map-wrapper">
+                            {# Google Maps Embed - Replace with your actual location #}
+                            <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.15830869428!2d-74.11976383964465!3d40.69766374874431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1234567890123!5m2!1sen!2s"
+                                    width="100%"
+                                    height="100%"
+                                    style="border:0;"
+                                    allowfullscreen=""
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    title="Elegant Hair Salon Location">
+                            </iframe>
+                        </div>
+                        <div class="map-footer">
+                            <p><i class="fas fa-parking"></i> Free parking available</p>
+                            <p><i class="fas fa-wheelchair"></i> Wheelchair accessible</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-cta-box">
+                        <div class="cta-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3>Ready to Transform Your Look?</h3>
+                        <p>Book your appointment online and experience the Elegant difference. Our expert stylists are ready to make you look and feel amazing.</p>
+                        <a href="{{ path('booking_index') }}" class="btn-primary">Book Your Appointment</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

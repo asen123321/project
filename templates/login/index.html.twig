@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    {% if recaptcha_enabled %}
+    {# Load reCAPTCHA v3 #}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    {% endif %}
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #333; margin-bottom: 0.5rem; }
+        p { color: #666; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .btn-login { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: background-color 0.3s; }
+        .btn-login:hover { background-color: #0056b3; }
+        .btn-login:disabled { background-color: #ccc; cursor: not-allowed; }
+        .divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; color: #aaa; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #ddd; }
+        .divider::before { margin-right: .5em; }
+        .divider::after { margin-left: .5em; }
+        .error-message { color: #dc3545; background-color: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .flash-message { padding: 12px 15px; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 500; }
+        .flash-error { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-warning { color: #856404; background-color: #fff3cd; border: 1px solid #ffeaa7; }
+        .links { margin-top: 1rem; font-size: 0.9rem; display: flex; justify-content: space-between; }
+        .links a { color: #007bff; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
+        .recaptcha-notice { font-size: 0.75rem; color: #666; margin-top: 1rem; line-height: 1.4; }
+        .recaptcha-notice a { color: #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h1>Welcome Back</h1>
+    <p>Sign in to your account</p>
+
+    {# Display error messages #}
+    <div id="error-container"></div>
+
+    {% if error %}
+        <div class="error-message">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+
+    {% for message in app.flashes('success') %}
+        <div class="flash-message flash-success">{{ message }}</div>
+    {% endfor %}
+
+    {# Login Form - Now using JavaScript with reCAPTCHA #}
+    <form id="loginForm">
+        <div class="form-group">
+            <input type="email" value="{{ last_username }}" name="email" id="inputEmail" placeholder="Email Address" required autofocus>
+        </div>
+        <div class="form-group">
+            <input type="password" name="password" id="inputPassword" placeholder="Password" required>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">Log In</button>
+    </form>
+
+    <div class="links">
+        <a href="/forgot-password">Forgot Password?</a>
+        <a href="/register">Create Account</a>
+    </div>
+
+    <div class="divider">OR</div>
+
+    <div id="g_id_onload"
+         data-client_id="{{ google_client_id }}"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left"
+         data-width="340">
+    </div>
+
+    {% if recaptcha_enabled %}
+    <div class="recaptcha-notice">
+        This site is protected by reCAPTCHA and the Google
+        <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and
+        <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // reCAPTCHA configuration
+    const RECAPTCHA_ENABLED = {{ recaptcha_enabled ? 'true' : 'false' }};
+    const RECAPTCHA_SITE_KEY = '{{ recaptcha_site_key }}';
+
+    // Helper function to parse JWT token
+    function parseJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Show error message
+    function showError(message) {
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            errorContainer.innerHTML = '';
+        }, 5000);
+    }
+
+    // --- Standard Login Form ---
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const loginBtn = document.getElementById('loginBtn');
+        const email = document.getElementById('inputEmail').value;
+        const password = document.getElementById('inputPassword').value;
+
+        // Disable button
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+
+        try {
+            let recaptchaToken = null;
+
+            // Get reCAPTCHA token if enabled
+            if (RECAPTCHA_ENABLED) {
+                try {
+                    recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+                        action: 'login'
+                    });
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                    showError('Security verification failed. Please refresh the page and try again.');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Log In';
+                    return;
+                }
+            }
+
+            // Send login request
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    recaptcha_token: recaptchaToken
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'success') {
+                // Store token
+                localStorage.setItem('app_token', data.app_token);
+
+                // Decode token to check roles
+                const userData = parseJwt(data.app_token);
+
+                // Redirect based on role
+                if (userData && userData.roles && userData.roles.includes('ROLE_ADMIN')) {
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    window.location.href = data.redirect_url || '/booking';
+                }
+            } else {
+                // Show error
+                showError(data.error || 'Login failed. Please check your credentials.');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showError('Connection error. Please try again.');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Log In';
+        }
+    });
+
+    // --- Google Login ---
+    async function handleCredentialResponse(response) {
+        console.log("Processing Google Login...");
+
+        try {
+            let recaptchaToken = null;
+
+            // Get reCAPTCHA token if enabled
+            if (RECAPTCHA_ENABLED) {
+                try {
+                    recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+                        action: 'google_login'
+                    });
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                    alert('Security verification failed. Please try again.');
+                    return;
+                }
+            }
+
+            // Send Google login request
+            const res = await fetch('/api/google-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: response.credential,
+                    recaptcha_token: recaptchaToken
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                // Store token
+                localStorage.setItem('app_token', data.app_token);
+
+                // Decode token to check roles
+                const userData = parseJwt(data.app_token);
+
+                // Redirect based on role
+                if (userData && userData.roles && userData.roles.includes('ROLE_ADMIN')) {
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    window.location.href = '/booking';
+                }
+            } else {
+                alert('Google Login Failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Connection Error');
+        }
+    }
+</script>
+
+</body>
+</html>

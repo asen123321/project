@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Failed - Hair Salon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .error-message {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .error-message h2 {
+            color: #991b1b;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .error-message p {
+            color: #b91c1c;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .reasons {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .reasons h3 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .reasons ul {
+            list-style: none;
+            padding: 0;
+        }
+        .reasons li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .reasons li:before {
+            content: "▸";
+            position: absolute;
+            left: 10px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .actions {
+            text-align: center;
+        }
+        .actions h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6b7280;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">⚠️</div>
+            <h1>Action Could Not Be Completed</h1>
+            <p>Unable to {% if action == 'approve' %}approve{% else %}reject{% endif %} booking</p>
+        </div>
+
+        <div class="content">
+            <div class="error-message">
+                <h2>❌ Error</h2>
+                <p>{{ error }}</p>
+            </div>
+
+            <div class="reasons">
+                <h3>🔍 Common Reasons:</h3>
+                <ul>
+                    <li>The link may have expired for security reasons (links are single-use)</li>
+                    <li>The booking may have already been approved or rejected</li>
+                    <li>The link may have been copied incorrectly or is incomplete</li>
+                    <li>The booking may no longer exist in the system</li>
+                </ul>
+            </div>
+
+            <div class="actions">
+                <h3>What to do next:</h3>
+                <a href="{{ path('admin_dashboard') }}" class="btn">
+                    🏠 Go to Admin Dashboard
+                </a>
+                <a href="https://calendar.google.com" class="btn btn-secondary">
+                    📅 Open Google Calendar
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Hair Salon Booking System</strong></p>
+            <p>If you continue to experience issues, please log in to the admin dashboard to manage bookings manually.</p>
+        </div>
+    </div>
+</body>
+</html>

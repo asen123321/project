@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Access Denied - 403</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .error-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .error-header h1 {
+            font-size: 48px;
+            margin: 0 0 10px 0;
+        }
+
+        .error-header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .error-body {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .error-details {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .error-details strong {
+            color: #dc3545;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .help-text {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #999;
+        }
+
+        @media (max-width: 600px) {
+            .error-header h1 {
+                font-size: 36px;
+            }
+
+            .error-icon {
+                font-size: 60px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-header">
+            <div class="error-icon">🚫</div>
+            <h1>403</h1>
+            <p>Access Denied</p>
+        </div>
+        <div class="error-body">
+            <div class="error-message">
+                <strong>You do not have permission to access this resource.</strong>
+                <br><br>
+                Your session may have expired, or you may not have the necessary permissions to view this page.
+            </div>
+
+            <div class="error-details">
+                <strong>What happened?</strong>
+                <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                    <li>Your session may be invalid or expired</li>
+                    <li>You may not have the required user role</li>
+                    <li>Your account may have been deactivated</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary" onclick="clearSession()">
+                    🔄 Login Again
+                </a>
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    ← Go Back
+                </a>
+            </div>
+
+            <div class="help-text">
+                If you believe this is an error, please contact support.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clear any stale localStorage data
+        function clearSession() {
+            localStorage.removeItem('app_token');
+            window.location.href = '/';
+        }
+
+        // Auto-clear localStorage if present
+        if (localStorage.getItem('app_token')) {
+            console.log('Clearing stale app_token from localStorage');
+            localStorage.removeItem('app_token');
+        }
+    </script>
+</body>
+</html>

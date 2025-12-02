@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Нова Услуга{% endblock %}
+
+{% block body %}
+    <div class="container" style="padding-top: 120px; max-width: 600px;">
+        <h1>Добави нова услуга</h1>
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+            {{ form_start(form) }}
+            <div style="margin-bottom: 15px;">{{ form_row(form.title, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 8px;'}}) }}</div>
+            <div style="margin-bottom: 15px;">{{ form_row(form.description, {'attr': {'class': 'form-control', 'style': 'width: 100%; padding: 8px;'}}) }}</div>
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <div style="flex: 1;">{{ form_row(form.price, {'attr': {'style': 'width: 100%; padding: 8px;'}}) }}</div>
+                <div style="flex: 1;">{{ form_row(form.duration, {'attr': {'style': 'width: 100%; padding: 8px;'}}) }}</div>
+            </div>
+            <div style="margin-bottom: 15px;">{{ form_row(form.iconClass, {'attr': {'style': 'width: 100%; padding: 8px;'}}) }}</div>
+            <div style="margin-bottom: 20px;">{{ form_row(form.imageFile) }}</div>
+
+            <button type="submit" class="btn btn-primary" style="background-color: #d4af37; border: none; padding: 10px 20px; color: white; cursor: pointer;">Запази Услугата</button>
+            <a href="{{ path('admin_services_index') }}" style="margin-left: 10px;">Отказ</a>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

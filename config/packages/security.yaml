@@ -1,0 +1,89 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\User:
+            algorithm: auto
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # Unified Firewall - Handles both web and API with sessions
+        main:
+            lazy: true
+            provider: app_user_provider
+            pattern: ^/
+
+            custom_authenticators:
+                - App\Security\AppCustomAuthenticator
+
+            entry_point: App\Security\AppCustomAuthenticator
+
+            # Logout configuration
+            logout:
+                path: app_logout
+                target: app_home
+                invalidate_session: true
+                enable_csrf: true
+                csrf_parameter: _csrf_token
+                csrf_token_id: logout
+
+            # Remember me functionality
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
+                always_remember_me: true
+
+            # Custom Access Denied Handler - redirects to / instead of showing 403 page
+            access_denied_handler: App\Security\CustomAccessDeniedHandler
+
+    access_control:
+        # Emergency error page - MUST be first and public
+        - { path: ^/error/access-denied, roles: PUBLIC_ACCESS }
+
+        # Logout - MUST be public to prevent 403
+        - { path: ^/logout, roles: PUBLIC_ACCESS }
+
+        # Public routes - HTML pages
+        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+
+        # Public API endpoints - authentication
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/google-login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/pagespeed, roles: PUBLIC_ACCESS }
+
+        # Admin routes
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
+        # Protected web routes - require session authentication
+        - { path: ^/booking, roles: ROLE_USER }
+        - { path: ^/home, roles: ROLE_USER }
+
+        # Protected API endpoints - require authentication (session-based now)
+        - { path: ^/api/, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_USER]
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

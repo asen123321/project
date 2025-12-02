@@ -1,0 +1,112 @@
+# Rate Limiter Configuration for reCAPTCHA Protected Endpoints
+framework:
+    rate_limiter:
+        # Login attempts: 5 per 15 minutes per IP
+        # Prevents brute force login attacks
+        login:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '15 minutes'
+            # Sliding window provides smooth rate limiting
+            # More fair than fixed window (no burst at window edges)
+
+        # Registration: 3 per hour per IP
+        # Prevents spam account creation
+        registration:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '1 hour'
+            # Fixed window is simpler and sufficient for registrations
+
+        # Booking creation: 10 per hour per IP
+        # Prevents calendar flooding and abuse
+        booking:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 hour'
+            # Sliding window allows for normal user behavior
+            # (e.g., booking multiple appointments for family)
+
+        # reCAPTCHA failures: 10 failures = 1 hour block
+        # Auto-blocks IPs with excessive verification failures
+        recaptcha_failure:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '1 hour'
+            # After 10 failures in an hour, IP is blocked
+            # Legitimate users rarely hit this limit
+
+        # Aggressive blocking for repeat offenders
+        # Used for IPs that keep trying after being blocked
+        recaptcha_aggressive:
+            policy: 'token_bucket'
+            limit: 3
+            rate:
+                interval: '5 minutes'
+                amount: 1
+            # Token bucket allows bursts but limits sustained traffic
+            # Good for catching persistent attackers
+
+# Environment-specific overrides
+when@dev:
+    framework:
+        rate_limiter:
+            # More lenient limits for development
+            login:
+                limit: 20
+                interval: '5 minutes'
+
+            registration:
+                limit: 10
+                interval: '1 hour'
+
+            booking:
+                limit: 50
+                interval: '1 hour'
+
+            recaptcha_failure:
+                limit: 50
+                interval: '1 hour'
+
+when@test:
+    framework:
+        rate_limiter:
+            # Very high limits for automated testing
+            login:
+                limit: 1000
+                interval: '1 minute'
+
+            registration:
+                limit: 1000
+                interval: '1 minute'
+
+            booking:
+                limit: 1000
+                interval: '1 minute'
+
+            recaptcha_failure:
+                limit: 1000
+                interval: '1 minute'
+
+when@staging:
+    framework:
+        rate_limiter:
+            # Slightly more lenient than production for testing
+            login:
+                limit: 10
+                interval: '15 minutes'
+
+            registration:
+                limit: 5
+                interval: '1 hour'
+
+            booking:
+                limit: 20
+                interval: '1 hour'
+
+            recaptcha_failure:
+                limit: 15
+                interval: '1 hour'
+
+# Production uses default configuration above
+# Strictest limits for security

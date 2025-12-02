@@ -1,0 +1,179 @@
+================================================================================
+BOOKING SYSTEM - QUICK FIX CHECKLIST
+================================================================================
+
+PROBLEM: client_phone and google_calendar_event_id are NULL in database
+         Frontend calendar doesn't show busy slots
+
+ROOT CAUSE: Database schema missing required columns (migration not run)
+
+================================================================================
+SOLUTION (5 Minutes)
+================================================================================
+
+1. RUN DATABASE MIGRATION
+
+   mysql -u USERNAME -p DATABASE_NAME < migrations/add_missing_booking_fields_mysql.sql
+
+2. VERIFY COLUMNS EXIST
+
+   mysql -u USERNAME -p
+   > USE DATABASE_NAME;
+   > DESCRIBE booking;
+
+   Look for:
+   ✓ client_phone
+   ✓ google_calendar_event_id
+
+3. CLEAR CACHE
+
+   php bin/console cache:clear
+
+4. CREATE TEST BOOKING
+
+   - Go to /booking in browser
+   - Create new booking with phone number
+   - Submit
+
+5. CHECK DATABASE
+
+   mysql> SELECT client_phone, google_calendar_event_id
+          FROM booking
+          ORDER BY id DESC
+          LIMIT 1;
+
+   Expected:
+   ✓ client_phone has value (not NULL)
+   ✓ google_calendar_event_id has value (if Google Calendar configured)
+
+6. TEST API ENDPOINT
+
+   curl -H "Cookie: PHPSESSID=xxx" \
+     "http://localhost/booking/api/bookings?start=2025-11-01&end=2025-12-31"
+
+   Expected: JSON array with busy events
+
+7. CHECK FRONTEND
+
+   - Refresh /booking page
+   - Look for gray "Busy" blocks on calendar
+
+================================================================================
+FILES CREATED
+================================================================================
+
+migrations/add_missing_booking_fields_mysql.sql  ← RUN THIS
+MIGRATION_GUIDE.md                                ← Read for details
+CRITICAL_FIX_SUMMARY.md                           ← Full explanation
+BOOKING_FIXES.md                                  ← Complete documentation
+test_bookings_api.sh                              ← Automated tests
+
+================================================================================
+VERIFICATION
+================================================================================
+
+After migration, check:
+
+[ ] DESCRIBE booking shows client_phone column
+[ ] DESCRIBE booking shows google_calendar_event_id column
+[ ] New booking has non-NULL client_phone
+[ ] New booking has non-NULL google_calendar_event_id (if calendar configured)
+[ ] /api/bookings returns JSON array
+[ ] Frontend shows gray busy blocks
+[ ] No errors in browser console (F12)
+[ ] Logs show "Booking synced to Google Calendar"
+
+================================================================================
+COMMANDS QUICK REFERENCE
+================================================================================
+
+# Run migration
+mysql -u user -p db < migrations/add_missing_booking_fields_mysql.sql
+
+# Check columns
+mysql -u user -p -e "DESCRIBE db.booking" | grep client_phone
+
+# Clear cache
+php bin/console cache:clear
+
+# Check data
+mysql -u user -p -e "SELECT client_phone, google_calendar_event_id FROM db.booking ORDER BY id DESC LIMIT 3"
+
+# Test API
+curl -H "Cookie: PHPSESSID=xxx" "http://localhost/booking/api/bookings?start=2025-01-01&end=2025-12-31"
+
+# Check logs
+tail -f var/log/dev.log | grep -E "(client_phone|calendar_event_id|busy slots)"
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Issue: "Duplicate column name"
+Fix: Column already exists, skip that ALTER TABLE
+
+Issue: "Could not find driver"
+Fix: Install php8.3-mysql package OR use mysql client directly
+
+Issue: Data still NULL after migration
+Fix: Create NEW booking (old bookings remain NULL)
+
+Issue: Frontend shows no busy slots
+Fix: Check browser console (F12) for errors
+     Check /api/bookings response
+     Check logs for "busy slots"
+
+Issue: google_calendar_event_id still NULL
+Fix: Check google-calendar.json exists
+     Check logs for Google Calendar errors
+     Verify calendar is shared with service account
+
+================================================================================
+WHAT'S ALREADY FIXED IN CODE
+================================================================================
+
+✓ BookingController extracts client_phone from request (line 203)
+✓ BookingController sets client_phone on entity (line 258)
+✓ GoogleCalendarService returns event ID (line 112)
+✓ BookingController sets google_calendar_event_id (line 269)
+✓ Second flush to persist event ID (line 274)
+✓ /api/bookings endpoint with eager loading (line 72-121)
+✓ Comprehensive logging throughout
+✓ Error handling for each booking
+
+ONLY MISSING: Database columns (run migration to add them)
+
+================================================================================
+SUCCESS INDICATORS
+================================================================================
+
+After running migration, you should see:
+
+DATABASE:
+  client_phone      = "555-1234" (not NULL)
+  google_calendar_event_id = "abc123xyz" (not NULL)
+
+LOGS:
+  [INFO] Booking synced to Google Calendar
+  [INFO] Fetching busy slots | bookings_found: 5
+  [INFO] Returning busy slots | event_count: 5
+
+FRONTEND:
+  ✓ Gray "Busy" blocks visible on calendar
+  ✓ Can't click on busy time slots
+  ✓ No JavaScript errors in console
+
+API:
+  ✓ /api/bookings returns JSON array
+  ✓ Each event has correct format
+  ✓ Events show correct start/end times
+
+================================================================================
+RUN THIS NOW
+================================================================================
+
+mysql -u your_username -p your_database_name < migrations/add_missing_booking_fields_mysql.sql
+
+Then create a test booking and verify data is saved!
+
+================================================================================

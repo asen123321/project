@@ -1,0 +1,49 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+parameters:
+  mailer.from_email: '%env(MAILER_FROM_EMAIL)%'
+  mailer.from_name: '%env(MAILER_FROM_NAME)%'
+  google.calendar.credentials_path: '%kernel.project_dir%/google-calendar.json'
+  google.calendar.calendar_id: 'asem4o@gmail.com'
+  admin.email: 'asem4o@gmail.com'
+  uri_signer.secret: '%env(APP_SECRET)%'
+  recaptcha.site_key: '%env(RECAPTCHA_SITE_KEY)%'
+  recaptcha.secret_key: '%env(RECAPTCHA_SECRET_KEY)%'
+  gallery_directory: '%kernel.project_dir%/public/uploads/gallery'
+  services_directory: '%kernel.project_dir%/public/uploads/services'
+  stylists_directory: '%kernel.project_dir%/public/uploads/stylists'
+
+services:
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    bind:
+      $mailerFromEmail: '%mailer.from_email%'
+      $mailerFromName: '%mailer.from_name%'
+      $credentialsPath: '%google.calendar.credentials_path%'
+      $calendarId: '%google.calendar.calendar_id%'
+      $adminEmail: '%admin.email%'
+      $recaptchaSiteKey: '%recaptcha.site_key%'
+      $recaptchaSecretKey: '%recaptcha.secret_key%'
+
+  # makes classes in src/ available to be used as services
+  App\:
+    resource: '../src/'
+    exclude:
+      - '../src/DependencyInjection/'
+      - '../src/Entity/'
+      - '../src/Kernel.php'
+      - '../src/Grpc/Auth/V1/GPBMetadata/'
+
+  # explicit definitions
+  App\Grpc\AuthService:
+    public: true
+    tags:
+      - { name: 'rpc.service', interface: 'App\Grpc\AuthServiceInterface' }
+
+  # UriSigner for secure signed URLs in one-click actions
+  Symfony\Component\HttpFoundation\UriSigner:
+    arguments:
+      $secret: '%uri_signer.secret%'

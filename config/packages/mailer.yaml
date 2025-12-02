@@ -1,0 +1,6 @@
+framework:
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
+        # Enable async email processing via Redis
+        # Emails will be queued and processed by dedicated worker containers
+        # message_bus: false  # OLD: Synchronous sending (disabled for high-performance async)

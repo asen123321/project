@@ -1,0 +1,134 @@
+services:
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./:/var/www/symfony
+    networks:
+      - symfony_network
+    environment:
+      DATABASE_URL: "mysql://symfony2:symfony@mysql:3306/symfony2?serverVersion=8.0"
+      MAILER_DSN: "gmail+smtp://asem4o%40gmail.com:njdrjpllwjoyggdc@default"
+      MESSENGER_TRANSPORT_DSN: "redis://redis:6379/messages"
+      APP_URL: "http://localhost"
+      MAILER_FROM_EMAIL: "asem4o@gmail.com"
+      MAILER_FROM_NAME: "My Symfony App"
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+
+  # Dedicated Worker Container - Processes async jobs (emails, notifications, etc.)
+  worker:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www/symfony
+    networks:
+      - symfony_network
+    environment:
+      DATABASE_URL: "mysql://symfony2:symfony@mysql:3306/symfony2?serverVersion=8.0"
+      MAILER_DSN: "gmail+smtp://asem4o%40gmail.com:njdrjpllwjoyggdc@default"
+      MESSENGER_TRANSPORT_DSN: "redis://redis:6379/messages"
+      APP_URL: "http://localhost"
+      MAILER_FROM_EMAIL: "asem4o@gmail.com"
+      MAILER_FROM_NAME: "My Symfony App"
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+      php:
+        condition: service_started
+    command: >
+      sh -c "
+        echo '🚀 Worker container starting...' &&
+        echo 'Waiting for dependencies...' &&
+        sleep 5 &&
+        echo '📧 Starting Symfony Messenger worker for async email processing...' &&
+        php bin/console messenger:consume async -vv --time-limit=3600 --memory-limit=128M
+      "
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "9090:9090"
+    volumes:
+      - ./:/var/www/symfony
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - symfony_network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: symfony2
+      MYSQL_USER: symfony2
+      MYSQL_PASSWORD: symfony
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - symfony_network
+
+  # Mailpit - Local email testing (optional for development)
+  mailer:
+    image: axllent/mailpit
+    container_name: mailer-1
+    ports:
+      - "8025:8025"  # Web UI for viewing emails
+      - "1025:1025"  # SMTP port
+    networks:
+      - symfony_network
+
+  # Redis - High-performance queue management for async operations
+  redis:
+    image: redis:7-alpine
+    container_name: project2-redis-1
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - symfony_network
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+
+networks:
+  symfony_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  database_data:
+  redis_data:  # Persistent storage for Redis queue data

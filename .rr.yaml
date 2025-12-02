@@ -1,0 +1,15 @@
+version: '3'
+
+server:
+  # Point this to your new worker file
+  command: "php grpc_worker.php"
+  relay: pipes
+
+grpc:
+  listen: "tcp://0.0.0.0:9001"
+  proto:
+    - "proto/auth/v1/auth.proto"
+
+logs:
+  mode: development
+  level: debug

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Calendar - Hair Salon</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src='/js/fullcalendar.min.js'></script>
+
+    {% if recaptcha_enabled %}
+        {# Load reCAPTCHA v3 #}
+        <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    {% endif %}
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+            margin: 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .calendar-wrapper {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        #calendar {
+            min-height: 700px;
+        }
+
+        .fc-button {
+            background: #667eea !important;
+            border-color: #667eea !important;
+        }
+
+        .fc-button:hover {
+            background: #5568d3 !important;
+            border-color: #5568d3 !important;
+        }
+
+        .fc-button-active {
+            background: #4c51bf !important;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .booking-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .booking-info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .booking-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .booking-info-item strong {
+            min-width: 120px;
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .service-option {
+            padding: 8px;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stylist-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .stylist-info strong {
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .modal-header h2 {
+                font-size: 20px;
+            }
+
+            .booking-info-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>💇‍♀️ Hair Salon Booking Calendar</h1>
+    </div>
+
+    <div class="calendar-wrapper">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<div id="bookingModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📅 Book Appointment</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="modal-alert"></div>
+
+            <div class="booking-info">
+                <div class="booking-info-item">
+                    <strong>📅 Date & Time:</strong>
+                    <span id="modal-datetime"></span>
+                </div>
+            </div>
+
+            <form id="modalBookingForm">
+                <div class="form-group">
+                    <label for="modal-stylist">Select Stylist *</label>
+                    <select id="modal-stylist" required>
+                        <option value="">Choose your stylist...</option>
+                        {% for stylist in stylists %}
+                            <option value="{{ stylist.id }}"
+                                    data-specialization="{{ stylist.specialization }}"
+                                    data-bio="{{ stylist.bio }}">
+                                {{ stylist.name }} - {{ stylist.specialization }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div id="stylist-info" class="stylist-info" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-service">Select Service *</label>
+                    <select id="modal-service" required disabled style="opacity: 0.6; cursor: not-allowed;">
+                        <option value="">First select a stylist...</option>
+                        {% for service in services %}
+                            {# Collect IDs of stylists who perform this service #}
+                            {% set stylistIds = [] %}
+                            {% for stylist in service.stylists %}
+                                {% set stylistIds = stylistIds|merge([stylist.id]) %}
+                            {% endfor %}
+
+                            <option value="{{ service.id }}"
+                                    data-duration="{{ service.durationMinutes }}"
+                                    data-price="{{ service.price }}"
+                                    data-stylist-ids="{{ stylistIds|json_encode }}"> {{ service.name }} - ${{ service.price }} ({{ service.durationMinutes }} min)
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-notes">Notes (Optional)</label>
+                    <textarea id="modal-notes" placeholder="Any special requests or preferences..."></textarea>
+                </div>
+
+                <input type="hidden" id="modal-date">
+                <input type="hidden" id="modal-time">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" onclick="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-success" id="confirmBookingBtn">
+                Confirm Booking
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // reCAPTCHA configuration
+    const RECAPTCHA_ENABLED = {{ recaptcha_enabled ? 'true' : 'false' }};
+    const RECAPTCHA_SITE_KEY = '{{ recaptcha_site_key }}';
+
+    let calendar;
+    let selectedSlotInfo = null;
+
+    // Initialize calendar on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            slotMinTime: '09:00:00',
+            slotMaxTime: '18:00:00',
+            allDaySlot: false,
+            nowIndicator: true,
+            editable: false,
+            selectable: true,
+            selectMirror: true,
+            selectOverlap: false, // Prevent selecting over existing events
+            slotDuration: '00:30:00',
+
+            // Load events from multiple sources
+            eventSources: [
+                // User's own bookings
+                {
+                    events: [
+                        {% for booking in userBookings %}
+                        {
+                            title: '{{ booking.service.name }} with {{ booking.stylist.name }}',
+                            start: '{{ booking.bookingDate|date('Y-m-d H:i:s') }}',
+                            end: '{{ booking.bookingDate|date_modify('+'~booking.service.durationMinutes~' minutes')|date('Y-m-d H:i:s') }}',
+                            backgroundColor: '{{ booking.status == "confirmed" ? "#28a745" : "#6c757d" }}',
+                            borderColor: '{{ booking.status == "confirmed" ? "#28a745" : "#6c757d" }}',
+                            extendedProps: {
+                                bookingId: {{ booking.id }},
+                                status: '{{ booking.status }}',
+                                type: 'own'
+                            }
+                        },
+                        {% endfor %}
+                    ]
+                },
+                // All busy slots (anonymous) to prevent double-booking
+                {
+                    url: '/booking/api/bookings',
+                    method: 'GET',
+                    failure: function(error) {
+                        console.error('Failed to load busy slots:', error);
+                    }
+                }
+            ],
+
+            // Handle slot selection
+            select: function(info) {
+                openBookingModal(info);
+            },
+
+            // Prevent selecting over busy slots
+            selectAllow: function(selectInfo) {
+                // Get all events in the calendar
+                const events = calendar.getEvents();
+
+                // Check if selection overlaps with any busy event
+                for (let event of events) {
+                    if (event.extendedProps.type === 'busy') {
+                        // Check for overlap
+                        if (selectInfo.start < event.end && selectInfo.end > event.start) {
+                            alert('⚠️ SLOT UNAVAILABLE: This time is already booked. Please select a different time.');
+                            return false; // Prevent selection
+                        }
+                    }
+                }
+                return true; // Allow selection
+            },
+
+            // Make busy events unclickable
+            eventClick: function(info) {
+                if (info.event.extendedProps.type === 'busy') {
+                    info.jsEvent.preventDefault();
+                    alert('⚠️ This time slot is unavailable. Please choose a different time.');
+                    return false;
+                }
+            },
+
+            // Style busy events differently
+            eventDidMount: function(info) {
+                if (info.event.extendedProps.type === 'busy') {
+                    info.el.style.cursor = 'not-allowed';
+                    info.el.style.opacity = '0.6';
+                    info.el.title = 'This time slot is unavailable';
+                }
+            },
+
+            // Prevent selecting past times
+            selectConstraint: {
+                start: new Date().toISOString()
+            }
+        });
+
+        calendar.render();
+    });
+
+    // Open modal when calendar slot is clicked
+    function openBookingModal(info) {
+        selectedSlotInfo = info;
+
+        // Format date and time for display
+        const startDate = new Date(info.start);
+        const dateStr = startDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const timeStr = startDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Set modal content
+        document.getElementById('modal-datetime').textContent = `${dateStr} at ${timeStr}`;
+        document.getElementById('modal-date').value = startDate.toISOString().split('T')[0];
+        document.getElementById('modal-time').value = startDate.toTimeString().split(' ')[0].substring(0, 5);
+
+        // Clear previous selections
+        document.getElementById('modalBookingForm').reset();
+        document.getElementById('modal-alert').innerHTML = '';
+        document.getElementById('stylist-info').style.display = 'none';
+
+        // Reset service dropdown state
+        const serviceSelect = document.getElementById('modal-service');
+        serviceSelect.disabled = true;
+        serviceSelect.style.opacity = '0.6';
+        serviceSelect.style.cursor = 'not-allowed';
+        serviceSelect.value = "";
+        serviceSelect.options[0].text = "First select a stylist...";
+
+        // Show modal
+        document.getElementById('bookingModal').style.display = 'block';
+    }
+
+    // Close modal
+    function closeModal() {
+        document.getElementById('bookingModal').style.display = 'none';
+        if (calendar && selectedSlotInfo) {
+            calendar.unselect();
+        }
+        selectedSlotInfo = null;
+    }
+
+    // Close modal when clicking X
+    document.querySelector('.close').onclick = closeModal;
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('bookingModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    // ---------------------------------------------------------
+    // LOGIC FOR STYLIST SELECTION AND SERVICE FILTERING
+    // ---------------------------------------------------------
+    document.getElementById('modal-stylist').addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        const infoDiv = document.getElementById('stylist-info');
+        const serviceSelect = document.getElementById('modal-service');
+
+        // 1. Show Stylist Info
+        if (option.value) {
+            const bio = option.dataset.bio;
+            const specialization = option.dataset.specialization;
+            infoDiv.innerHTML = `<strong>${option.text.split(' - ')[0]}</strong><br>${bio || ''}`;
+            infoDiv.style.display = 'block';
+        } else {
+            infoDiv.style.display = 'none';
+        }
+
+        // 2. Filter Services
+        const selectedStylistId = parseInt(this.value);
+
+        // Reset service selection
+        serviceSelect.value = "";
+
+        if (!selectedStylistId) {
+            // Lock service dropdown if no stylist selected
+            serviceSelect.disabled = true;
+            serviceSelect.style.opacity = '0.6';
+            serviceSelect.style.cursor = 'not-allowed';
+            serviceSelect.options[0].text = "First select a stylist...";
+            return;
+        }
+
+        // Unlock service dropdown
+        serviceSelect.disabled = false;
+        serviceSelect.style.opacity = '1';
+        serviceSelect.style.cursor = 'default';
+        serviceSelect.options[0].text = "Choose a service...";
+
+        let hasAvailableServices = false;
+
+        // Iterate through services and show/hide based on stylist
+        Array.from(serviceSelect.options).forEach(opt => {
+            if (opt.value === "") return; // Skip placeholder
+
+            // Get Allowed Stylists from data attribute
+            const allowedStylists = JSON.parse(opt.getAttribute('data-stylist-ids') || '[]');
+
+            if (allowedStylists.includes(selectedStylistId)) {
+                opt.style.display = ''; // Show
+                opt.disabled = false;
+                hasAvailableServices = true;
+            } else {
+                opt.style.display = 'none'; // Hide
+                opt.disabled = true; // For Safari/iOS
+            }
+        });
+
+        // If stylist has no services assigned
+        if (!hasAvailableServices) {
+            serviceSelect.options[0].text = "No services available for this stylist";
+            // Optionally disable again if you want
+            // serviceSelect.disabled = true;
+        }
+    });
+
+    // Handle booking confirmation with availability check
+    document.getElementById('confirmBookingBtn').addEventListener('click', async function() {
+        const alertDiv = document.getElementById('modal-alert');
+        const btn = this;
+
+        // Validate form
+        const stylistId = document.getElementById('modal-stylist').value;
+        const serviceId = document.getElementById('modal-service').value;
+
+        if (!stylistId || !serviceId) {
+            alertDiv.innerHTML = '<div class="alert alert-error">Please select both a stylist and service.</div>';
+            return;
+        }
+
+        const bookingDate = document.getElementById('modal-date').value;
+        const bookingTime = document.getElementById('modal-time').value;
+        const notes = document.getElementById('modal-notes').value;
+
+        // Disable button and show loading
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span> Checking availability...';
+
+        try {
+            // Step 1: Check availability first
+            const checkResponse = await fetch(`/booking/api/available-slots?stylist_id=${stylistId}&service_id=${serviceId}&date=${bookingDate}`, {
+                credentials: 'same-origin'
+            });
+
+            const slotsData = await checkResponse.json();
+
+            if (slotsData.error) {
+                throw new Error(slotsData.error);
+            }
+
+            // Check if selected time is still available
+            const isAvailable = slotsData.slots.some(slot => slot.time === bookingTime);
+
+            if (!isAvailable) {
+                alertDiv.innerHTML = '<div class="alert alert-error">⚠️ Sorry! This time slot is no longer available. Please select another time.</div>';
+                btn.disabled = false;
+                btn.innerHTML = 'Confirm Booking';
+
+                // Close modal and unselect on calendar
+                setTimeout(() => {
+                    closeModal();
+                }, 2000);
+                return;
+            }
+
+            // Step 2: Generate reCAPTCHA token if enabled
+            let recaptchaToken = null;
+
+            if (RECAPTCHA_ENABLED) {
+                try {
+                    btn.innerHTML = '<span class="loading-spinner"></span> Verifying security...';
+                    recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+                        action: 'booking_create'
+                    });
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                    alertDiv.innerHTML = '<div class="alert alert-error">Security verification failed. Please refresh the page and try again.</div>';
+                    btn.disabled = false;
+                    btn.innerHTML = 'Confirm Booking';
+                    return;
+                }
+            }
+
+            // Step 3: Create booking
+            btn.innerHTML = '<span class="loading-spinner"></span> Creating booking...';
+
+            const bookingData = {
+                stylist_id: stylistId,
+                service_id: serviceId,
+                booking_date: bookingDate,
+                booking_time: bookingTime,
+                notes: notes
+            };
+
+            // Add reCAPTCHA token if enabled
+            if (RECAPTCHA_ENABLED && recaptchaToken) {
+                bookingData.recaptcha_token = recaptchaToken;
+            }
+
+            const response = await fetch('/booking/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(bookingData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alertDiv.innerHTML = '<div class="alert alert-success">✓ ' + result.message + '</div>';
+
+                // Reload page after 1.5 seconds to show new booking
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                // Check for reCAPTCHA failure
+                if (response.status === 403 && result.code === 'RECAPTCHA_FAILED') {
+                    alertDiv.innerHTML = '<div class="alert alert-error">⚠️ ' + result.error + '</div>';
+                } else {
+                    throw new Error(result.error || 'Booking failed');
+                }
+                btn.disabled = false;
+                btn.innerHTML = 'Confirm Booking';
+            }
+
+        } catch (error) {
+            alertDiv.innerHTML = `<div class="alert alert-error">✗ ${error.message}</div>`;
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm Booking';
+        }
+    });
+</script>
+</body>
+</html>

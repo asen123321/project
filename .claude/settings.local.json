@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(chmod:*)",
+      "Bash(chown:*)",
+      "Bash(sudo chown -R www-data:www-data src/Command)",
+      "Bash(sudo chmod:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(wait)",
+      "Bash(docker restart:*)",
+      "Bash(docker ps:*)",
+      "Bash(sudo chown:*)",
+      "Bash(docker-compose exec:*)",
+      "Bash(php bin/console:*)",
+      "Bash(composer require:*)",
+      "Bash(php -l:*)",
+      "Bash(composer show:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(./verify_fullcalendar_fix.sh:*)",
+      "Bash(dos2unix:*)",
+      "Bash(bash verify_fullcalendar_fix.sh:*)",
+      "Bash(bash:*)",
+      "Bash(find:*)",
+      "Bash(if [ -f \"/home/needy/project2/.gitignore\" ])",
+      "Bash(then cat /home/needy/project2/.gitignore)",
+      "Bash(else echo \"No .gitignore found\")",
+      "Bash(fi)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

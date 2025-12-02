@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Стилисти{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Стилисти</h1>
+            <a href="{{ path('admin_stylists_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Добави нов
+            </a>
+        </div>
+
+        <div class="row">
+            {% for stylist in stylists %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            {% if stylist.photoUrl %}
+                                <img src="{{ asset('uploads/stylists/' ~ stylist.photoUrl) }}"
+                                     class="rounded-circle mb-3"
+                                     style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #eee;">
+                            {% else %}
+                                <div class="rounded-circle mb-3 bg-secondary d-flex align-items-center justify-content-center mx-auto"
+                                     style="width: 120px; height: 120px; color: white; font-size: 2rem;">
+                                    {{ stylist.name|first }}
+                                </div>
+                            {% endif %}
+
+                            <h3 class="h5">{{ stylist.name }}</h3>
+                            <p class="text-muted mb-2">{{ stylist.specialization }}</p>
+
+                            <div class="text-start border-top pt-3 mt-3">
+                                <small class="fw-bold text-uppercase text-muted">Услуги:</small>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    {% for service in stylist.services %}
+                                        <span class="badge bg-info text-dark">{{ service.title }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">Няма свързани услуги</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">Все още няма добавени стилисти.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,202 @@
+<html>
+<head>
+    <title>Register</title>
+    {% if recaptcha_enabled %}
+    {# Load reCAPTCHA v3 #}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    {% endif %}
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px 0;
+        }
+        .register-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 { text-align: center; color: #333; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #007bff; outline: none; }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: background-color 0.3s;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 0.9rem;
+            display: none;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .login-link { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+        .login-link a { color: #007bff; text-decoration: none; }
+        .login-link a:hover { text-decoration: underline; }
+        .recaptcha-notice {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 1rem;
+            line-height: 1.4;
+            text-align: center;
+        }
+        .recaptcha-notice a { color: #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="register-card">
+    <h2>Create Account</h2>
+
+    <div id="error-msg" class="error-message"></div>
+
+    <form id="registerForm">
+        <div class="form-group">
+            <input type="email" id="email" placeholder="Email Address" required>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="username" placeholder="Username" required>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+                <input type="text" id="first_name" placeholder="First Name">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <input type="text" id="last_name" placeholder="Last Name">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Password" required minlength="6">
+        </div>
+
+        <button type="submit" id="submitBtn">Sign Up</button>
+    </form>
+
+    <div class="login-link">
+        Already have an account? <a href="/login">Log in here</a>
+    </div>
+
+    {% if recaptcha_enabled %}
+    <div class="recaptcha-notice">
+        This site is protected by reCAPTCHA and the Google
+        <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and
+        <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // reCAPTCHA configuration
+    const RECAPTCHA_ENABLED = {{ recaptcha_enabled ? 'true' : 'false' }};
+    const RECAPTCHA_SITE_KEY = '{{ recaptcha_site_key }}';
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const btn = document.getElementById('submitBtn');
+        const errorDiv = document.getElementById('error-msg');
+
+        // Disable button while loading
+        btn.disabled = true;
+        btn.textContent = 'Creating Account...';
+        errorDiv.style.display = 'none';
+
+        try {
+            let recaptchaToken = null;
+
+            // Get reCAPTCHA token if enabled
+            if (RECAPTCHA_ENABLED) {
+                try {
+                    recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+                        action: 'register'
+                    });
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                    errorDiv.textContent = 'Security verification failed. Please refresh the page and try again.';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Sign Up';
+                    return;
+                }
+            }
+
+            const data = {
+                email: document.getElementById('email').value,
+                username: document.getElementById('username').value,
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                password: document.getElementById('password').value,
+                recaptcha_token: recaptchaToken
+            };
+
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                // Store the token
+                localStorage.setItem('app_token', result.app_token);
+                // Redirect
+                window.location.href = result.redirect_url || '/booking';
+            } else {
+                // Show error
+                errorDiv.textContent = result.error || 'Registration failed. Please try again.';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Sign Up';
+            }
+        } catch (err) {
+            console.error('Registration error:', err);
+            errorDiv.textContent = 'Connection error. Please try again.';
+            errorDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Sign Up';
+        }
+    });
+</script>
+
+</body>
+</html>

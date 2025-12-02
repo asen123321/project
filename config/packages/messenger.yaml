@@ -1,0 +1,45 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        transports:
+            # Redis transport for high-performance async processing
+            # DSN format: redis://host:port/messages
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    # Stream options for Redis
+                    stream: 'messages'
+                    group: 'symfony'
+                    consumer: 'consumer'
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000  # 1 second
+                    multiplier: 2
+                    max_delay: 0
+                # Use native PHP serializer for better compatibility with email messages
+                serializer: 'messenger.transport.native_php_serializer'
+
+            # Fallback to database for failed messages
+            failed: 'doctrine://default?queue_name=failed'
+
+            # Synchronous transport (no queue, immediate processing)
+            # sync: 'sync://'
+
+        default_bus: messenger.bus.default
+
+        buses:
+            messenger.bus.default: []
+
+        routing:
+            # ASYNC EMAIL PROCESSING via Redis
+            # Emails are queued in Redis and processed by dedicated worker containers
+            # This keeps the web interface fast and responsive
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+
+            # Other async messages can be routed here
+            Symfony\Component\Notifier\Message\ChatMessage: async
+            Symfony\Component\Notifier\Message\SmsMessage: async
+
+            # Route booking confirmation emails to async transport
+            App\Message\BookingConfirmationEmail: async

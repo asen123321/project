@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option php_namespace = "App\\Grpc\\Auth\\V1";
+option php_metadata_namespace = "App\\Grpc\\Auth\\V1\\GPBMetadata";
+
+service AuthService {
+  // Existing Google Login
+  rpc GoogleLogin (GoogleLoginRequest) returns (LoginResponse);
+
+  // NEW: Standard Registration
+  rpc Register (RegisterRequest) returns (LoginResponse);
+
+  // NEW: Standard Login (Email/Pass)
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
+  rpc ResetPassword (ResetPasswordRequest) returns (LoginResponse);
+}
+
+message GoogleLoginRequest {
+  string id_token = 1;
+}
+
+message LoginResponse {
+  string app_token = 1;
+}
+
+// NEW: Data needed for registration
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string username = 3;
+  string first_name = 4;
+  string last_name = 5;
+}
+
+// NEW: Data needed for standard login
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string new_password = 2;
+}
