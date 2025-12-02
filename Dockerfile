@@ -1,6 +1,6 @@
-﻿FROM php:8.4-fpm
+FROM php:8.2-fpm
 
-# Install system dependencies for PHP extensions
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -8,42 +8,49 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    libicu-dev \
     zip \
     unzip \
-    zlib1g-dev \
-    autoconf \
-    automake \
-    libtool \
-    g++ \
-    make \
+    nginx \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-# - pdo_mysql: MySQL database connectivity
-# - mbstring: Multibyte string handling for emails
-# - exif: Image metadata
-# - pcntl: Process control for workers
-# - bcmath: Arbitrary precision mathematics
-# - gd: Image processing
-# - zip: Archive handling
-# - sockets: Network socket support for SMTP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip sockets
+RUN docker-php-ext-configure intl \
+    && docker-php-ext-install \
+    pdo_mysql \
+    intl \
+    zip \
+    opcache \
+    gd
 
-# Install gRPC and Protobuf via PECL
-RUN pecl install grpc protobuf && docker-php-ext-enable grpc protobuf
-
-# Install Redis extension via PECL
-# This enables PHP to communicate with Redis for queue management
-RUN pecl install redis && docker-php-ext-enable redis
-
+# Copy Composer from official image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/symfony
+# Set working directory
+WORKDIR /var/www/html
 
-COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+# Copy application files
+COPY . /var/www/html
 
-RUN chown -R www-data:www-data /var/www/symfony
+# Install Composer dependencies
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-USER www-data
+# Create var directory and set permissions
+RUN mkdir -p var && chown -R www-data:www-data /var/www/html
 
-EXPOSE 9000
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy supervisor configuration
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy and make entrypoint script executable
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose port 80
+EXPOSE 80
+
+# Use entrypoint script as CMD
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
