@@ -65,7 +65,7 @@ RUN echo 'APP_ENV=prod' > .env \
     && echo 'APP_SECRET=${APP_SECRET:-changeme_generate_a_real_secret_key}' >> .env \
     && echo 'APP_URL=${APP_URL:-https://low-gianina-usersymfony-955f83af.koyeb.app}' >> .env \
     && echo 'DEFAULT_URI=${DEFAULT_URI:-https://low-gianina-usersymfony-955f83af.koyeb.app}' >> .env \
-    && echo 'DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/dbname}' >> .env \
+    && echo 'DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/dbname?serverVersion=16}' >> .env \
     && echo 'MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}' >> .env \
     && echo 'MAILER_DSN=${MAILER_DSN:-null://null}' >> .env \
     && echo 'JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem' >> .env \
@@ -97,6 +97,9 @@ RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
 
 # Expose port
 EXPOSE 8000
+
+# Fix cache permissions for runtime
+RUN chown -R www-data:www-data /var/www/html/var
 
 # Start via entrypoint (which starts Supervisor)
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
