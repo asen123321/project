@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     autoconf \
     build-essential \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -72,6 +73,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy and make entrypoint script executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 8000
