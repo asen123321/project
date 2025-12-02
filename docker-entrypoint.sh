@@ -23,7 +23,13 @@ echo "Warming up cache..."
 php bin/console cache:warmup --env=prod || echo "Cache warmup failed, continuing..."
 
 echo "Running database migrations..."
-php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || echo "Migration failed or no migrations to run"
+php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+if [ $? -ne 0 ]; then
+    echo "ERROR: Database migrations failed!"
+    echo "Container will not start. Please check your database connection and migrations."
+    exit 1
+fi
+echo "Migrations completed successfully!"
 
 echo "Starting Supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
