@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies and libraries
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libicu-dev \
     libpq-dev \
+    libsodium-dev \
     zip \
     unzip \
     nginx \
@@ -20,16 +21,19 @@ RUN apt-get update && apt-get install -y \
 
 # Install PHP extensions
 RUN docker-php-ext-configure intl \
-    && docker-php-ext-install \
+    && docker-php-ext-install -j$(nproc) \
+    pdo_mysql \
     pdo_pgsql \
     intl \
     zip \
     opcache \
     gd \
-    sockets
+    sockets \
+    sodium
 
 # Install Redis extension via PECL
-RUN pecl install redis && docker-php-ext-enable redis
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
 # Copy Composer from official image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -37,14 +41,28 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy composer files first for better layer caching
+COPY composer.json composer.lock ./
+
+# Install Composer dependencies
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-scripts \
+    --ignore-platform-reqs \
+    --no-interaction \
+    --prefer-dist
+
 # Copy application files
 COPY . /var/www/html
 
-# Install Composer dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+# Run composer dump-autoload to ensure autoloader is optimized
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
 # Create var directory and set permissions
-RUN mkdir -p var && chown -R www-data:www-data /var/www/html
+RUN mkdir -p var/cache var/log var/sessions \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 var
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -58,6 +76,10 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 8000
 EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Use entrypoint script as CMD
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
