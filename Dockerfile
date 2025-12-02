@@ -63,6 +63,8 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 # Create production .env file (since .env is gitignored)
 RUN echo 'APP_ENV=prod' > .env \
     && echo 'APP_SECRET=${APP_SECRET:-changeme_generate_a_real_secret_key}' >> .env \
+    && echo 'APP_URL=${APP_URL:-https://low-gianina-usersymfony-955f83af.koyeb.app}' >> .env \
+    && echo 'DEFAULT_URI=${DEFAULT_URI:-https://low-gianina-usersymfony-955f83af.koyeb.app}' >> .env \
     && echo 'DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/dbname}' >> .env \
     && echo 'MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}' >> .env \
     && echo 'MAILER_DSN=${MAILER_DSN:-null://null}' >> .env \
@@ -78,8 +80,9 @@ RUN echo 'APP_ENV=prod' > .env \
     && echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}' >> .env \
     && echo 'LOCK_DSN=${LOCK_DSN:-flock}' >> .env
 
-# Create directories and set permissions
-RUN mkdir -p var/cache var/log var/sessions \
+# Remove any dev cache and create fresh directories
+RUN rm -rf var/cache/* var/log/* \
+    && mkdir -p var/cache var/log var/sessions \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 var
 
