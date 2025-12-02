@@ -33,7 +33,9 @@
       "Bash(fi)",
       "Bash(if [ -f \"/home/needy/project2/.env\" ])",
       "Bash(then echo \".env exists\")",
-      "Bash(else echo \".env NOT FOUND\")"
+      "Bash(else echo \".env NOT FOUND\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
