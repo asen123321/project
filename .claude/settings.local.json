@@ -41,7 +41,10 @@
       "Bash(docker --version:*)",
       "Bash(git ls-tree:*)",
       "Bash(git checkout:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker run:*)",
+      "Bash(docker rm:*)",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []
