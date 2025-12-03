@@ -10,13 +10,10 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    libpq-dev \
-    libsodium-dev \
     acl \
     autoconf \
     pkg-config \
     build-essential \
-    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Инсталираме REDIS
@@ -25,14 +22,13 @@ RUN pecl install redis \
 
 # 4. Инсталираме PHP разширения
 RUN docker-php-ext-install \
-    pdo_pgsql \
+    pdo_mysql \
     intl \
     zip \
     opcache \
     gd \
     bcmath \
-    sockets \
-    sodium
+    sockets
 
 # 5. Активираме mod_rewrite (за красиви URL-и)
 RUN a2enmod rewrite
@@ -65,14 +61,12 @@ RUN mkdir -p config/jwt var/cache var/log \
     && chown -R www-data:www-data var config/jwt \
     && chmod -R 777 var config/jwt
 
-# 10. Копираме и настройваме entrypoint скрипт
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
-    && chmod +x /usr/local/bin/docker-entrypoint.sh
+# 10. Генерираме JWT ключове
+RUN JWT_PASSPHRASE=${JWT_PASSPHRASE:-ccdf26f041e1e590a576d15e285457d0427eb3a9fc11} \
+    php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
 
 # 11. Отваряме порт 8000
 EXPOSE 8000
 
-# 12. Стартираме чрез entrypoint скрипт
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["apache2-foreground"]
 
