@@ -2,9 +2,9 @@ doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
 
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
-        #server_version: '16'
+        # ВАЖНО: Тук фиксираме версията, за да спре грешката "Invalid platform version"
+        # Това е настройка за MySQL 8 (каквато е в Aiven)
+        server_version: '8.0.32'
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
@@ -14,8 +14,9 @@ doctrine:
         report_fields_where_declared: true
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-        identity_generation_preferences:
-            Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
+
+        # Махнахме секцията за "PostgreSQLPlatform", защото вече сме на MySQL
+
         auto_mapping: true
         mappings:
             App:
