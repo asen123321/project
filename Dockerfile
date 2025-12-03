@@ -62,8 +62,8 @@ RUN mkdir -p config/jwt var/cache var/log \
     && chmod -R 777 var config/jwt
 
 # 10. Генерираме JWT ключове
-RUN JWT_PASSPHRASE=${JWT_PASSPHRASE:-ccdf26f041e1e590a576d15e285457d0427eb3a9fc11111797deae25727f46a7} \
-    php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
+RUN JWT_PASSPHRASE= php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
+
 
 # 11. Отваряме порт 8000
 EXPOSE 8000
