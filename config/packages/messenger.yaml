@@ -9,9 +9,9 @@ framework:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
                     # Stream options for Redis
-                    stream: 'messages'
-                    group: 'symfony'
-                    consumer: 'consumer'
+#                    stream: 'messages'
+#                    group: 'symfony'
+#                    consumer: 'consumer'
                 retry_strategy:
                     max_retries: 3
                     delay: 1000  # 1 second
