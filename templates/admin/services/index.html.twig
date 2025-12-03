@@ -23,8 +23,8 @@
             {% for service in services %}
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 10px;">
-                        {# Уверете се, че пътят тук съвпада с папката за качване #}
-                        <img src="{{ asset('uploads/services/' ~ service.imageFilename) }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        {# Display service image from Cloudinary #}
+                        <img src="{{ service.imageFilename }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
                     </td>
                     <td style="padding: 10px;">{{ service.title }}</td>
                     <td style="padding: 10px;">{{ service.price }}</td>

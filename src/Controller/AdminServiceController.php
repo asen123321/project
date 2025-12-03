@@ -1,43 +1,22 @@
 <?php
 
-
 namespace App\Controller;
 
-
 use App\Entity\ServiceItem;
-
 use App\Repository\ServiceItemRepository;
-
+use App\Service\CloudinaryUploader;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-
 use Symfony\Component\HttpFoundation\Request;
-
 use Symfony\Component\HttpFoundation\Response;
-
 use Symfony\Component\Routing\Annotation\Route;
-
-use Symfony\Component\String\Slugger\SluggerInterface;
-
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-
 use Symfony\Component\Validator\Constraints\File;
-
 use App\Entity\Stylist;
-
-// <--- Трябва ни за връзката
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-
-// <
 
 #[Route('/admin/services')]
 #[IsGranted('ROLE_ADMIN')]
@@ -60,7 +39,7 @@ class AdminServiceController extends AbstractController
 
 
     #[Route('/new', name: 'admin_services_new')]
-    public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $em, CloudinaryUploader $uploader): Response
     {
         $service = new ServiceItem();
 
@@ -105,20 +84,19 @@ class AdminServiceController extends AbstractController
             /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
             $imageFile = $form->get('imageFile')->getData();
 
+            // Upload to Cloudinary instead of local storage
             if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
-
                 try {
-                    $imageFile->move(
-                        $this->getParameter('services_directory'),
-                        $newFilename
-                    );
-                } catch (FileException $e) {
-                    // Handle exception
+                    // Upload to Cloudinary and get the secure URL
+                    $imageUrl = $uploader->uploadImage($imageFile, 'services');
+
+                    // Store the full Cloudinary URL in the database
+                    $service->setImageFilename($imageUrl);
+
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Failed to upload image: ' . $e->getMessage());
+                    return $this->redirectToRoute('admin_services_new');
                 }
-                $service->setImageFilename($newFilename);
             }
 
             // 👇 ВАЖНО: Автоматично изчисляване на минутите за календара
@@ -142,30 +120,27 @@ class AdminServiceController extends AbstractController
         ]);
     }
     #[Route('/{id}/delete', name: 'admin_services_delete', methods: ['POST'])]
-    public function delete(Request $request, ServiceItem $service, EntityManagerInterface $em): Response
-
+    public function delete(Request $request, ServiceItem $service, EntityManagerInterface $em, CloudinaryUploader $uploader): Response
     {
-
         if ($this->isCsrfTokenValid('delete' . $service->getId(), $request->request->get('_token'))) {
-
-            $filePath = $this->getParameter('kernel.project_dir') . 'public/uploads/services' . $service->getImageFilename();
-
-            if (file_exists($filePath)) {
-
-                unlink($filePath);
-
+            // Delete from Cloudinary if it's a Cloudinary URL
+            $imageUrl = $service->getImageFilename();
+            if ($imageUrl && str_starts_with($imageUrl, 'http')) {
+                try {
+                    $uploader->deleteImage($imageUrl);
+                } catch (\Exception $e) {
+                    // Log error but continue with deletion
+                    $this->addFlash('warning', 'Service deleted but image cleanup failed.');
+                }
             }
 
-
             $em->remove($service);
-
             $em->flush();
 
+            $this->addFlash('success', 'Service deleted successfully.');
         }
 
-
         return $this->redirectToRoute('admin_services_index');
-
     }
 
 }

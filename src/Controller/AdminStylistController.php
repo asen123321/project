@@ -3,17 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Stylist;
-use App\Entity\ServiceItem; // <--- Връзката с услугите
+use App\Entity\ServiceItem;
 use App\Repository\StylistRepository;
+use App\Service\CloudinaryUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType; // <--- За Checkbox-овете
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -32,7 +31,7 @@ class AdminStylistController extends AbstractController
     }
 
     #[Route('/new', name: 'admin_stylists_new')]
-    public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function new(Request $request, EntityManagerInterface $em, CloudinaryUploader $uploader): Response
     {
         $stylist = new Stylist();
 
@@ -79,22 +78,19 @@ class AdminStylistController extends AbstractController
             /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $imageFile */
             $imageFile = $form->get('imageFile')->getData();
 
-            // Обработка на снимката
+            // Upload to Cloudinary instead of local storage
             if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
-
                 try {
-                    $imageFile->move(
-                        $this->getParameter('stylists_directory'),
-                        $newFilename
-                    );
-                } catch (FileException $e) {
-                    // Handle error
-                }
+                    // Upload to Cloudinary and get the secure URL
+                    $imageUrl = $uploader->uploadImage($imageFile, 'stylists');
 
-                $stylist->setPhotoUrl($newFilename);
+                    // Store the full Cloudinary URL in the database
+                    $stylist->setPhotoUrl($imageUrl);
+
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Failed to upload image: ' . $e->getMessage());
+                    return $this->redirectToRoute('admin_stylists_new');
+                }
             }
 
             $em->persist($stylist);

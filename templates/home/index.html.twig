@@ -28,7 +28,8 @@
                 {% for service in services %}
                     <div class="service-card">
                         <div class="service-image">
-                            <img src="{{ asset('uploads/services/' ~ service.imageFilename) }}" alt="{{ service.title }}">
+                            {# Display service image from Cloudinary #}
+                            <img src="{{ service.imageFilename }}" alt="{{ service.title }}">
                             <div class="service-overlay">
                                 <div class="service-icon">
                                     {# Използваме класа от базата, ако има, иначе default #}
@@ -60,7 +61,7 @@
             {# ... CTA бутона отдолу ... #}
         </div>
     </section>
-    {# Our Team Section #}
+    {# Our Team Section - DYNAMIC DATA FROM DATABASE #}
     <section class="team-section" id="team">
         <div class="container">
             <div class="section-header">
@@ -69,73 +70,36 @@
             </div>
 
             <div class="team-grid">
-                <div class="team-card">
-                    <div class="team-image">
-                        <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop" alt="Stylist 1">
-                        <div class="team-overlay">
-                            <div class="team-social">
-                                <a href="#"><i class="fab fa-instagram"></i></a>
-                                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="team-info">
-                        <h3>Sarah Johnson</h3>
-                        <p class="team-role">Master Stylist</p>
-                        <p class="team-bio">15+ years of experience in cutting-edge hair design</p>
-                    </div>
-                </div>
+                {% for stylist in stylists %}
+                    <div class="team-card">
+                        <div class="team-image">
+                            {# Display stylist photo from Cloudinary #}
+                            {% if stylist.photoUrl %}
+                                <img src="{{ stylist.photoUrl }}" alt="{{ stylist.name }}">
+                            {% else %}
+                                {# Fallback placeholder image if no photo #}
+                                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop" alt="{{ stylist.name }}">
+                            {% endif %}
 
-                <div class="team-card">
-                    <div class="team-image">
-                        <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400&h=400&fit=crop" alt="Stylist 2">
-                        <div class="team-overlay">
-                            <div class="team-social">
-                                <a href="#"><i class="fab fa-instagram"></i></a>
-                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <div class="team-overlay">
+                                <div class="team-social">
+                                    <a href="#"><i class="fab fa-instagram"></i></a>
+                                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="team-info">
-                        <h3>Michael Chen</h3>
-                        <p class="team-role">Color Specialist</p>
-                        <p class="team-bio">Award-winning colorist with a passion for creativity</p>
-                    </div>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image">
-                        <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop" alt="Stylist 3">
-                        <div class="team-overlay">
-                            <div class="team-social">
-                                <a href="#"><i class="fab fa-instagram"></i></a>
-                                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            </div>
+                        <div class="team-info">
+                            <h3>{{ stylist.name }}</h3>
+                            <p class="team-role">{{ stylist.specialization|default('Professional Stylist') }}</p>
+                            <p class="team-bio">{{ stylist.bio|default('Experienced professional dedicated to your beauty') }}</p>
                         </div>
                     </div>
-                    <div class="team-info">
-                        <h3>Emily Rodriguez</h3>
-                        <p class="team-role">Senior Stylist</p>
-                        <p class="team-bio">Specialist in contemporary cuts and bridal styling</p>
+                {% else %}
+                    {# Show this if no stylists in database #}
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                        <p>Все още няма добавени стилисти в екипа.</p>
                     </div>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-image">
-                        <img src="https://images.unsplash.com/photo-1595475884562-073c962f970f?w=400&h=400&fit=crop" alt="Stylist 4">
-                        <div class="team-overlay">
-                            <div class="team-social">
-                                <a href="#"><i class="fab fa-instagram"></i></a>
-                                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="team-info">
-                        <h3>David Martinez</h3>
-                        <p class="team-role">Hair Artist</p>
-                        <p class="team-bio">Innovative stylist with expertise in modern techniques</p>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </section>

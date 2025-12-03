@@ -1,0 +1,57 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README*
+CHANGELOG*
+LICENSE*
+docs/
+
+# Development files
+.env.local
+.env.*.local
+.editorconfig
+.phpunit*
+phpunit.xml*
+tests/
+
+# Docker files (don't copy docker-compose into the image)
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+*.log
+*.cache
+tmp/
+temp/
+
+# Build artifacts
+*.tar
+*.zip
+*.gz
+
+# Local development var directory (will be created in container)
+var/cache/*
+var/log/*
+var/sessions/*
+!var/.gitkeep

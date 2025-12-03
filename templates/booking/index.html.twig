@@ -13,6 +13,30 @@
     {% endif %}
 
     <style>
+        /* FullCalendar Event Styles - Make Events Clickable */
+        .fc-event,
+        .fc-event-main {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+
+        .fc-event:hover:not([data-type="busy"]) {
+            opacity: 0.9;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .fc-event[data-type="busy"] {
+            cursor: not-allowed !important;
+        }
+
+        /* Ensure event content doesnt block clicks */
+        .fc-event-title,
+        .fc-event-time {
+            pointer-events: none;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -35,7 +59,7 @@
             background: white;
             padding: 25px 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
@@ -98,7 +122,7 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         #calendar {
@@ -129,13 +153,17 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
             animation: fadeIn 0.3s;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes slideIn {
@@ -156,7 +184,7 @@
             border-radius: 16px;
             width: 90%;
             max-width: 700px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             animation: slideIn 0.3s;
         }
 
@@ -292,14 +320,16 @@
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 3px solid rgba(255, 255, 255, .3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .stylist-info {
@@ -389,7 +419,8 @@
                             <option value="{{ service.id }}"
                                     data-duration="{{ service.durationMinutes }}"
                                     data-price="{{ service.price }}"
-                                    data-stylist-ids="{{ stylistIds|json_encode }}"> {{ service.name }} - ${{ service.price }} ({{ service.durationMinutes }} min)
+                                    data-stylist-ids="{{ stylistIds|json_encode }}"> {{ service.name }} -
+                                ${{ service.price }} ({{ service.durationMinutes }} min)
                             </option>
                         {% endfor %}
                     </select>
@@ -422,7 +453,7 @@
     let selectedSlotInfo = null;
 
     // Initialize calendar on page load
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
 
         calendar = new FullCalendar.Calendar(calendarEl, {
@@ -441,6 +472,8 @@
             selectMirror: true,
             selectOverlap: false, // Prevent selecting over existing events
             slotDuration: '00:30:00',
+            eventLongPressDelay: 0,
+            selectLongPressDelay: 0,
 
             // Load events from multiple sources
             eventSources: [
@@ -467,19 +500,19 @@
                 {
                     url: '/booking/api/bookings',
                     method: 'GET',
-                    failure: function(error) {
+                    failure: function (error) {
                         console.error('Failed to load busy slots:', error);
                     }
                 }
             ],
 
             // Handle slot selection
-            select: function(info) {
+            select: function (info) {
                 openBookingModal(info);
             },
 
             // Prevent selecting over busy slots
-            selectAllow: function(selectInfo) {
+            selectAllow: function (selectInfo) {
                 // Get all events in the calendar
                 const events = calendar.getEvents();
 
@@ -497,20 +530,51 @@
             },
 
             // Make busy events unclickable
-            eventClick: function(info) {
+            eventClick: function (info) {
+                // Prevent default behavior
+                info.jsEvent.preventDefault();
+                info.jsEvent.stopPropagation();
+
+                // Check if this is a busy slot
                 if (info.event.extendedProps.type === 'busy') {
-                    info.jsEvent.preventDefault();
                     alert('⚠️ This time slot is unavailable. Please choose a different time.');
+                    return false;
+                }
+
+                // Check if this is user's own booking
+                if (info.event.extendedProps.type === 'own') {
+                    const bookingId = info.event.extendedProps.bookingId;
+                    const status = info.event.extendedProps.status;
+
+                    // Show booking details
+                    alert(`Your Booking #${bookingId}\nService: ${info.event.title}\nStatus: ${status}\n\nTime: ${info.event.start.toLocaleString()}`);
                     return false;
                 }
             },
 
-            // Style busy events differently
-            eventDidMount: function(info) {
-                if (info.event.extendedProps.type === 'busy') {
+            // Style events differently based on type
+            eventDidMount: function (info) {
+                const eventType = info.event.extendedProps.type;
+
+                // Add data attribute for CSS
+                if (eventType) {
+                    info.el.setAttribute('data-type', eventType);
+                }
+
+                if (eventType === 'busy') {
+                    // Busy slots - not clickable
                     info.el.style.cursor = 'not-allowed';
                     info.el.style.opacity = '0.6';
                     info.el.title = 'This time slot is unavailable';
+                } else if (eventType === 'own') {
+                    // User's own bookings - clickable
+                    info.el.style.cursor = 'pointer';
+                    info.el.title = `Your booking: ${info.event.title} (Click for details)`;
+                    info.el.style.pointerEvents = 'auto';
+                } else {
+                    // Default - clickable
+                    info.el.style.cursor = 'pointer';
+                    info.el.style.pointerEvents = 'auto';
                 }
             },
 
@@ -575,7 +639,7 @@
     document.querySelector('.close').onclick = closeModal;
 
     // Close modal when clicking outside
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const modal = document.getElementById('bookingModal');
         if (event.target == modal) {
             closeModal();
@@ -585,7 +649,7 @@
     // ---------------------------------------------------------
     // LOGIC FOR STYLIST SELECTION AND SERVICE FILTERING
     // ---------------------------------------------------------
-    document.getElementById('modal-stylist').addEventListener('change', function() {
+    document.getElementById('modal-stylist').addEventListener('change', function () {
         const option = this.options[this.selectedIndex];
         const infoDiv = document.getElementById('stylist-info');
         const serviceSelect = document.getElementById('modal-service');
@@ -649,7 +713,7 @@
     });
 
     // Handle booking confirmation with availability check
-    document.getElementById('confirmBookingBtn').addEventListener('click', async function() {
+    document.getElementById('confirmBookingBtn').addEventListener('click', async function () {
         const alertDiv = document.getElementById('modal-alert');
         const btn = this;
 

@@ -292,4 +292,58 @@ class AdminController extends AbstractController
 
         return $this->json($stats);
     }
+
+    #[Route('/calendar', name: 'admin_calendar')]
+    public function calendar(): Response
+    {
+        return $this->render('admin/calendar.html.twig');
+    }
+
+    #[Route('/api/bookings', name: 'admin_api_bookings')]
+    public function apiBookings(): JsonResponse
+    {
+        // Fetch all bookings with related entities
+        $bookings = $this->bookingRepository->createQueryBuilder('b')
+            ->leftJoin('b.user', 'u')
+            ->leftJoin('b.stylist', 's')
+            ->leftJoin('b.service', 'srv')
+            ->addSelect('u', 's', 'srv')
+            ->orderBy('b.bookingDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        // Format bookings for FullCalendar
+        $events = [];
+        foreach ($bookings as $booking) {
+            // Determine color based on status
+            $color = match($booking->getStatus()) {
+                Booking::STATUS_CONFIRMED => '#28a745',
+                Booking::STATUS_PENDING => '#ffc107',
+                Booking::STATUS_CANCELLED => '#dc3545',
+                Booking::STATUS_COMPLETED => '#17a2b8',
+                default => '#6c757d'
+            };
+
+            $events[] = [
+                'id' => $booking->getId(),
+                'title' => $booking->getService()->getName() . ' - ' . $booking->getStylist()->getName(),
+                'start' => $booking->getBookingDate()->format('Y-m-d\TH:i:s'),
+                'end' => $booking->getEndTime()->format('Y-m-d\TH:i:s'),
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'extendedProps' => [
+                    'clientName' => $booking->getUser()->getFirstName() . ' ' . $booking->getUser()->getLastName(),
+                    'clientEmail' => $booking->getUser()->getEmail(),
+                    'clientPhone' => $booking->getClientPhone(),
+                    'stylist' => $booking->getStylist()->getName(),
+                    'service' => $booking->getService()->getName(),
+                    'status' => $booking->getStatus(),
+                    'notes' => $booking->getNotes(),
+                    'price' => $booking->getService()->getPrice(),
+                ]
+            ];
+        }
+
+        return $this->json($events);
+    }
 }

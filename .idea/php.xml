@@ -185,6 +185,8 @@
       <path value="$PROJECT_DIR$/vendor/symfony/lock" />
       <path value="$PROJECT_DIR$/vendor/symfony/rate-limiter" />
       <path value="$PROJECT_DIR$/vendor/symfony/maker-bundle" />
+      <path value="$PROJECT_DIR$/vendor/cloudinary/transformation-builder-sdk" />
+      <path value="$PROJECT_DIR$/vendor/cloudinary/cloudinary_php" />
     </include_path>
   </component>
   <component name="PhpInterpreters">

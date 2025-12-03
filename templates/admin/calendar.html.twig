@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Calendar - Booking System</title>
+
+    {# FullCalendar CSS & JS #}
+    <script src='/js/fullcalendar.min.js'></script>
+
+    <style>
+        /* FullCalendar Event Styles - Make Events Clickable */
+        .fc-event,
+        .fc-event-main {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+
+        .fc-event:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+
+        /* Ensure event content is clickable */
+        .fc-event-title,
+        .fc-event-time {
+            pointer-events: none;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .calendar-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #calendar {
+            min-height: 700px;
+        }
+
+        /* FullCalendar button styling */
+        .fc-button {
+            background: #667eea !important;
+            border-color: #667eea !important;
+        }
+
+        .fc-button:hover {
+            background: #5568d3 !important;
+            border-color: #5568d3 !important;
+        }
+
+        .fc-button-active {
+            background: #4c51bf !important;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .booking-details {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 0.75rem;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #667eea;
+            min-width: 140px;
+        }
+
+        .detail-value {
+            color: #2d3748;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-confirmed { background: #c6f6d5; color: #22543d; }
+        .status-pending { background: #feebc8; color: #7c2d12; }
+        .status-cancelled { background: #fed7d7; color: #742a2a; }
+        .status-completed { background: #bee3f8; color: #2c5282; }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn-confirm {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #38a169;
+        }
+
+        .btn-cancel {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #e53e3e;
+        }
+
+        .btn-close {
+            background: #cbd5e0;
+            color: #2d3748;
+        }
+
+        .btn-close:hover {
+            background: #a0aec0;
+        }
+
+        @media (max-width: 768px) {
+            .legend {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>📅 Admin Calendar</h1>
+            <div class="header-buttons">
+                <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        {# Legend #}
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #28a745;"></div>
+                <span>Confirmed</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffc107;"></div>
+                <span>Pending</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #dc3545;"></div>
+                <span>Cancelled</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #17a2b8;"></div>
+                <span>Completed</span>
+            </div>
+        </div>
+
+        {# Calendar #}
+        <div class="calendar-wrapper">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    {# Booking Details Modal #}
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Booking Details</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="booking-details" id="bookingDetails">
+                    {# Details will be populated by JavaScript #}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-close" onclick="closeModal()">Close</button>
+                <button class="btn btn-confirm" id="btnConfirm" style="display: none;">✓ Confirm</button>
+                <button class="btn btn-cancel" id="btnCancel" style="display: none;">✗ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let calendar;
+        let currentBooking = null;
+
+        // Initialize calendar on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                slotMinTime: '09:00:00',
+                slotMaxTime: '18:00:00',
+                allDaySlot: false,
+                nowIndicator: true,
+                editable: false,
+                selectable: false,
+                slotDuration: '00:30:00',
+                eventLongPressDelay: 0,
+                selectLongPressDelay: 0,
+                height: 'auto',
+
+                // Load events from API
+                events: {
+                    url: '{{ path('admin_api_bookings') }}',
+                    method: 'GET',
+                    failure: function(error) {
+                        console.error('Failed to load bookings:', error);
+                        alert('Failed to load bookings. Please refresh the page.');
+                    }
+                },
+
+                // Handle event click
+                eventClick: function(info) {
+                    // Prevent default link behavior
+                    info.jsEvent.preventDefault();
+                    info.jsEvent.stopPropagation();
+                    
+                    // Show booking details
+                    showBookingDetails(info.event);
+                },
+
+                // Style events - Make them visually clickable
+                eventDidMount: function(info) {
+                    // Add data attribute for CSS targeting
+                    if (info.event.extendedProps.type) {
+                        info.el.setAttribute('data-type', info.event.extendedProps.type);
+                    }
+                    
+                    // Ensure cursor pointer
+                    info.el.style.cursor = 'pointer';
+                    
+                    // Add title for accessibility
+                    info.el.title = `Click to view details: ${info.event.title}`;
+                    
+                    // Make sure element is interactive
+                    info.el.style.pointerEvents = 'auto';
+                }
+            });
+
+            calendar.render();
+        });
+
+        // Show booking details in modal
+        function showBookingDetails(event) {
+            currentBooking = event;
+            const props = event.extendedProps;
+
+            // Format date and time
+            const startDate = new Date(event.start);
+            const endDate = new Date(event.end);
+            const dateStr = startDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const timeStr = startDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            }) + ' - ' + endDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Build details HTML
+            const detailsHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Booking ID:</div>
+                    <div class="detail-value">#${event.id}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value">
+                        <span class="status-badge status-${props.status}">${props.status}</span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Client:</div>
+                    <div class="detail-value">${props.clientName}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email:</div>
+                    <div class="detail-value">${props.clientEmail}</div>
+                </div>
+                ${props.clientPhone ? `
+                <div class="detail-row">
+                    <div class="detail-label">Phone:</div>
+                    <div class="detail-value">${props.clientPhone}</div>
+                </div>
+                ` : ''}
+                <div class="detail-row">
+                    <div class="detail-label">Date & Time:</div>
+                    <div class="detail-value">${dateStr}<br>${timeStr}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Service:</div>
+                    <div class="detail-value">${props.service}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Stylist:</div>
+                    <div class="detail-value">${props.stylist}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Price:</div>
+                    <div class="detail-value">$${props.price}</div>
+                </div>
+                ${props.notes ? `
+                <div class="detail-row">
+                    <div class="detail-label">Notes:</div>
+                    <div class="detail-value">${props.notes}</div>
+                </div>
+                ` : ''}
+            `;
+
+            document.getElementById('bookingDetails').innerHTML = detailsHTML;
+
+            // Show/hide action buttons based on status
+            const btnConfirm = document.getElementById('btnConfirm');
+            const btnCancel = document.getElementById('btnCancel');
+
+            btnConfirm.style.display = props.status !== 'confirmed' ? 'inline-block' : 'none';
+            btnCancel.style.display = props.status !== 'cancelled' ? 'inline-block' : 'none';
+
+            // Attach event handlers
+            btnConfirm.onclick = () => changeStatus(event.id, 'confirmed');
+            btnCancel.onclick = () => changeStatus(event.id, 'cancelled');
+
+            // Show modal
+            document.getElementById('bookingModal').style.display = 'block';
+        }
+
+        // Change booking status
+        async function changeStatus(bookingId, newStatus) {
+            const actionText = newStatus === 'confirmed' ? 'confirm' : 'cancel';
+
+            if (!confirm(`Are you sure you want to ${actionText} this booking?\\n\\nAn email notification will be sent to the client.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/booking/${bookingId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ ${result.message}`);
+                    closeModal();
+                    // Refresh calendar events
+                    calendar.refetchEvents();
+                } else {
+                    alert(`❌ Error: ${result.error || 'Failed to update status'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Failed to update status. Please try again.');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('bookingModal').style.display = 'none';
+            currentBooking = null;
+        }
+
+        // Close modal when clicking X
+        document.querySelector('.close').onclick = closeModal;
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('bookingModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

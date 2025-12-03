@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     build-essential \
     dos2unix \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Инсталираме REDIS
@@ -81,14 +82,17 @@ RUN mkdir -p config/jwt var/cache var/log \
     && chown -R www-data:www-data var config/jwt \
     && chmod -R 777 var config/jwt
 
-# 10. Копираме и настройваме entrypoint скрипт
+# 10. Копираме supervisor конфигурация
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# 11. Копираме и настройваме entrypoint скрипт
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 11. Отваряме порт 8000
+# 12. Отваряме порт 8000
 EXPOSE 8000
 
-# 12. Стартираме чрез entrypoint скрипт
+# 13. Стартираме чрез entrypoint скрипт (който ще стартира supervisord)
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
 

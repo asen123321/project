@@ -238,6 +238,7 @@
                 <p class="header-info">Welcome, {{ app.user.firstName ?? app.user.username }}</p>
             </div>
             {% if is_granted('ROLE_ADMIN') %}
+                <li><a href="{{ path('admin_calendar') }}" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 6px; font-weight: 500;">📅 Calendar</a></li>
                 <li><a href="{{ path('admin_gallery_index') }}">Управление Галерия</a></li>
                 <li><a href="{{ path('admin_stylists_index') }}">Добавяне на стилист</a></li>
                 <li><a href="{{ path('admin_services_new') }}">Добавяне на услуги</a></li>
