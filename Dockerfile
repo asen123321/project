@@ -1,106 +1,56 @@
-FROM php:8.3-fpm
+﻿# 1. Използваме PHP с вграден Apache (най-лесното решение)
+FROM php:8.2-apache
 
-# Install system dependencies
+# 2. Инсталиране на системни библиотеки и зависимости
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
+    unzip \
+    libzip-dev \
+    libicu-dev \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    libzip-dev \
-    libicu-dev \
-    libpq-dev \
-    libsodium-dev \
-    autoconf \
-    build-essential \
-    dos2unix \
-    zip \
-    unzip \
-    nginx \
-    supervisor \
+    acl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-configure intl \
-    && docker-php-ext-install -j$(nproc) \
+# 3. Инсталиране на PHP разширения, нужни за Symfony
+RUN docker-php-ext-install \
     pdo_mysql \
-    pdo_pgsql \
     intl \
-    gd \
     zip \
-    sockets \
-    sodium \
-    opcache
+    opcache \
+    gd \
+    bcmath \
+    sockets
 
-# Install Redis extension via PECL
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+# 4. Включване на mod_rewrite за Apache (задължително за Symfony маршрутите)
+RUN a2enmod rewrite
 
-# Copy Composer
+# 5. Настройка на Apache да сочи към папка /public (а не към главната)
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# 6. Инсталиране на Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# 7. Задаваме работната папка
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json composer.lock ./
+# 8. Копираме файловете на проекта
+COPY . .
 
-# Install dependencies with platform req bypass
-RUN composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --no-scripts \
-    --ignore-platform-reqs \
-    --no-interaction \
-    --prefer-dist
+# 9. Инсталираме PHP пакетите (без скриптове, за да не гърми при билдване)
+# Използваме --no-scripts, защото базата данни още не е налична в този момент
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction --prefer-dist
 
-# Copy application
-COPY . /var/www/html
+# 10. Създаване на кеш папките и оправяне на правата
+# Това е критично, за да не дава грешка 500
+RUN mkdir -p var/cache var/log \
+    && chown -R www-data:www-data var \
+    && chmod -R 777 var
 
-# Optimize autoloader
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+# 11. Отваряме порт 80 (стандартния за Apache/Koyeb)
+EXPOSE 80
 
-# Create production .env file (since .env is gitignored)
-RUN echo 'APP_ENV=prod' > .env \
-    && echo 'APP_SECRET=${APP_SECRET:-changeme_generate_a_real_secret_key}' >> .env \
-    && echo 'APP_URL=${APP_URL:-https://low-gianina-usersymfony-955f83af.koyeb.app}' >> .env \
-    && echo 'DEFAULT_URI=${DEFAULT_URI:-https://low-gianina-usersymfony-955f83af.koyeb.app}' >> .env \
-    && echo 'DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/dbname}' >> .env \
-    && echo 'MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}' >> .env \
-    && echo 'MAILER_DSN=${MAILER_DSN:-null://null}' >> .env \
-    && echo 'JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem' >> .env \
-    && echo 'JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem' >> .env \
-    && echo 'JWT_PASSPHRASE=${JWT_PASSPHRASE:-}' >> .env \
-    && echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}' >> .env \
-    && echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}' >> .env \
-    && echo 'GOOGLE_API_KEY=${GOOGLE_API_KEY:-}' >> .env \
-    && echo 'MAILER_FROM_EMAIL=${MAILER_FROM_EMAIL:-noreply@example.com}' >> .env \
-    && echo 'MAILER_FROM_NAME=${MAILER_FROM_NAME:-Symfony App}' >> .env \
-    && echo 'RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY:-}' >> .env \
-    && echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}' >> .env \
-    && echo 'LOCK_DSN=${LOCK_DSN:-flock}' >> .env
-
-# Remove any dev cache and create fresh directories
-RUN rm -rf var/cache/* var/log/* \
-    && mkdir -p var/cache var/log var/sessions config/jwt \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 var \
-    && chmod -R 775 config/jwt
-
-# Copy configurations
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Copy entrypoint and fix CRLF line endings
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
-    && chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Expose port
-EXPOSE 8000
-
-# Fix cache permissions for runtime
-RUN chown -R www-data:www-data /var/www/html/var
-
-# Start via entrypoint (which starts Supervisor)
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
+# Apache стартира автоматично, няма нужда от CMD команда
