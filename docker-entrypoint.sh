@@ -6,35 +6,51 @@ echo "Starting Symfony Application Deployment"
 echo "========================================="
 echo ""
 
-echo "Checking environment variables..."
-if [ -z "$JWT_PASSPHRASE" ]; then
-    echo "WARNING: JWT_PASSPHRASE environment variable is not set!"
-    echo "Please set JWT_PASSPHRASE in Koyeb environment variables."
-fi
+echo "Checking JWT configuration..."
+echo "JWT_PASSPHRASE is: ${JWT_PASSPHRASE:-(empty/not set)}"
 
 echo "Generating JWT keys if missing..."
 if [ ! -f config/jwt/private.pem ]; then
-    echo "JWT keys not found, generating..."
+    echo "JWT keys not found, generating with EMPTY passphrase..."
     mkdir -p config/jwt
     chown -R www-data:www-data config/jwt
     chmod -R 777 config/jwt
 
-    # Generate JWT keypair with passphrase from environment
-    php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction
+    # Generate JWT keypair with EMPTY passphrase
+    # This prevents "error encoding JWT token" issues in production
+    JWT_PASSPHRASE="" php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction
 
     if [ $? -eq 0 ]; then
-        echo "JWT keys generated successfully!"
+        echo "✓ JWT keys generated successfully!"
         chmod 644 config/jwt/public.pem
-        chmod 600 config/jwt/private.pem
+        chmod 644 config/jwt/private.pem
         chown -R www-data:www-data config/jwt
     else
         echo "ERROR: JWT key generation failed!"
-        echo "Please check JWT_PASSPHRASE environment variable."
         exit 1
     fi
 else
-    echo "JWT keys already exist, skipping generation."
+    echo "✓ JWT keys already exist, skipping generation."
 fi
+
+# Verify JWT keys exist and have correct permissions
+echo ""
+echo "========================================="
+echo "Verifying JWT keys before starting..."
+echo "========================================="
+if [ -f config/jwt/private.pem ] && [ -f config/jwt/public.pem ]; then
+    echo "✓ Private key exists: config/jwt/private.pem"
+    echo "✓ Public key exists: config/jwt/public.pem"
+    ls -lh config/jwt/
+    echo "✓ JWT keys are ready!"
+else
+    echo "ERROR: JWT keys are missing!"
+    echo "Private key exists: $([ -f config/jwt/private.pem ] && echo 'YES' || echo 'NO')"
+    echo "Public key exists: $([ -f config/jwt/public.pem ] && echo 'YES' || echo 'NO')"
+    exit 1
+fi
+echo "========================================="
+echo ""
 
 echo "Clearing cache..."
 php bin/console cache:clear --no-warmup --env=prod || echo "Cache clear failed, continuing..."
