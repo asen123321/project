@@ -1,63 +1,48 @@
-﻿# 1. Използваме PHP с Apache
-FROM php:8.2-apache
+﻿# 1. СМЯНА НА ВЕРСИЯТА: Ползваме PHP 8.3 (заради composer.lock)
+FROM php:8.3-apache
 
-# 2. Инсталираме системни библиотеки + ИНСТРУМЕНТИ ЗА КОМПИЛИРАНЕ (autoconf)
-# Без autoconf и build-essential, инсталацията на Redis гърми!
+# 2. Инсталиране на библиотеки + инструменти за Redis
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    libicu-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    acl \
-    autoconf \
-    pkg-config \
-    build-essential \
+    git unzip libzip-dev libicu-dev libpng-dev libonig-dev libxml2-dev acl \
+    autoconf pkg-config build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Инсталираме REDIS (вече няма да дава грешка)
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+# 3. Инсталиране на REDIS
+RUN pecl install redis && docker-php-ext-enable redis
 
-# 4. Инсталираме стандартните PHP разширения
-RUN docker-php-ext-install \
-    pdo_mysql \
-    intl \
-    zip \
-    opcache \
-    gd \
-    bcmath \
-    sockets
+# 4. Инсталиране на PHP разширения
+RUN docker-php-ext-install pdo_mysql intl zip opcache gd bcmath sockets
 
-# 5. Активираме mod_rewrite
+# 5. Активиране на mod_rewrite и смяна на Порт 8000
 RUN a2enmod rewrite
-
-# --- НАСТРОЙКА ЗА ПОРТ 8000 ---
-# Казваме на Apache да слуша на порт 8000 вместо на 80
 RUN sed -i 's/80/8000/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# 6. Настройка на основната папка (public)
+# 6. Настройка на Apache (ВАЖНО: Оправя 404 грешката на Login)
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Този ред липсваше в твоя код:
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 
-# 7. Инсталираме Composer
+# 7. Копиране на файловете
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
+# Създаваме празен .env, за да не гърми
+RUN touch .env
 
-# 8. Инсталираме пакетите на Symfony
+# 8. Инсталиране на пакетите
 RUN composer install --optimize-autoloader --no-scripts --no-interaction --prefer-dist
 
-# 9. Оправяме папките и правата (за да няма грешка 500/Permission Denied)
-RUN mkdir -p config/jwt var/cache var/log \
+# 9. ПОПРАВКА ЗА JWT (Изтриваме старите/грешни ключове)
+# Това е критично, за да се махнат онези "Zone.Identifier" файлове
+RUN rm -rf config/jwt/*.pem \
+    && mkdir -p config/jwt var/cache var/log \
     && chown -R www-data:www-data var config/jwt \
     && chmod -R 777 var config/jwt
 
-# 10. Генерираме JWT ключове (ако имаш LexikJWT)
-RUN php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
-
-# 11. Отваряме порт 8000
+# 10. Порт
 EXPOSE 8000
+
+# 11. СТАРТ КОМАНДА (Генерира нови ключове с паролата от Koyeb)
+CMD php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction && apache2-foreground
