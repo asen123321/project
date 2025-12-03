@@ -23,8 +23,10 @@ RUN apt-get update && apt-get install -y \
 RUN pecl install redis \
     && docker-php-ext-enable redis
 
-# 4. Инсталираме PHP разширения
+# 4. Инсталираме PHP разширения (INCLUDING pdo_mysql for MySQL support!)
 RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
     pdo_pgsql \
     intl \
     zip \
@@ -38,15 +40,26 @@ RUN docker-php-ext-install \
 RUN a2enmod rewrite
 
 # --- НАСТРОЙКА ЗА ПОРТ 8000 (KOYEB REQUIREMENT) ---
-# Change Apache to listen on port 8000 instead of 80
-RUN sed -i 's/Listen 80/Listen 8000/g' /etc/apache2/ports.conf && \
-    sed -i 's/:80>/:8000>/g' /etc/apache2/sites-available/000-default.conf && \
-    sed -i 's/:80/:8000/g' /etc/apache2/sites-available/000-default.conf
+# Completely OVERWRITE Apache config files to avoid sed syntax errors
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
-# 6. Настройка на основната папка
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Overwrite ports.conf to listen on port 8000
+RUN echo "Listen 8000" > /etc/apache2/ports.conf
+
+# Overwrite 000-default.conf with clean VirtualHost configuration
+RUN echo '<VirtualHost *:8000>' > /etc/apache2/sites-available/000-default.conf && \
+    echo '    ServerAdmin webmaster@localhost' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    DocumentRoot /var/www/html/public' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    <Directory /var/www/html/public>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        Options -Indexes +FollowSymLinks' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        AllowOverride All' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        Require all granted' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    </Directory>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    ErrorLog ${APACHE_LOG_DIR}/error.log' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    CustomLog ${APACHE_LOG_DIR}/access.log combined' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '</VirtualHost>' >> /etc/apache2/sites-available/000-default.conf
 
 # --- ВАЖНАТА ПОПРАВКА ЗА 404 ГРЕШКАТА ---
 # Това позволява на .htaccess файла да работи и да пренасочва /login към Symfony
