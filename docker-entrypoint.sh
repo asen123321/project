@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+echo "========================================="
+echo "Starting Symfony Application Deployment"
+echo "========================================="
+echo ""
+
 echo "Checking .env file..."
 if [ ! -f .env ]; then
     echo "Creating .env file..."
@@ -35,5 +40,10 @@ if [ $? -ne 0 ]; then
 fi
 echo "Migrations completed successfully!"
 
+echo ""
+echo "========================================="
+echo "Application initialization complete!"
 echo "Starting Supervisor..."
+echo "========================================="
+echo ""
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
