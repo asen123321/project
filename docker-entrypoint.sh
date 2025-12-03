@@ -13,7 +13,11 @@ echo "Generating JWT keys if missing..."
 if [ ! -f config/jwt/private.pem ]; then
     echo "JWT keys not found, generating..."
     mkdir -p config/jwt
-    php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction || echo "JWT generation skipped or failed"
+    chown -R www-data:www-data config/jwt
+    php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction || {
+        echo "WARNING: JWT key generation failed. Ensure JWT_PASSPHRASE is set in Koyeb."
+        echo "Continuing anyway..."
+    }
 fi
 
 echo "Clearing cache..."

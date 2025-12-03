@@ -82,9 +82,10 @@ RUN echo 'APP_ENV=prod' > .env \
 
 # Remove any dev cache and create fresh directories
 RUN rm -rf var/cache/* var/log/* \
-    && mkdir -p var/cache var/log var/sessions \
+    && mkdir -p var/cache var/log var/sessions config/jwt \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 var
+    && chmod -R 775 var \
+    && chmod -R 775 config/jwt
 
 # Copy configurations
 COPY nginx.conf /etc/nginx/nginx.conf
