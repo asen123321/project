@@ -40,7 +40,8 @@
       "Bash(php -r:*)",
       "Bash(docker --version:*)",
       "Bash(git ls-tree:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
