@@ -17,7 +17,7 @@
             <tbody>
             {% for image in images %}
                 <tr>
-                    <td><img src="{{ asset('uploads/gallery/' ~ image.filename) }}" style="height: 50px;"></td>
+                    <td><img src="{{ image.filename|image_url }}" style="height: 50px;"></td>
                     <td>{{ image.title }}</td>
                     <td>{{ image.category }}</td>
                     <td>
