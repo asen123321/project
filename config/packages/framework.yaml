@@ -3,9 +3,6 @@ framework:
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true
 
-    # Trusted hosts pattern for production security
-    trusted_hosts: ['^low-gianina-usersymfony-955f83af\.koyeb\.app$', '^localhost$', '^127\.0\.0\.1$']
-
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 

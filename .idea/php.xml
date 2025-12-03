@@ -65,7 +65,6 @@
       <path value="$PROJECT_DIR$/vendor/symfony/validator" />
       <path value="$PROJECT_DIR$/vendor/symfony/mime" />
       <path value="$PROJECT_DIR$/vendor/symfony/security-bundle" />
-      <path value="$PROJECT_DIR$/vendor/symfony/maker-bundle" />
       <path value="$PROJECT_DIR$/vendor/symfony/expression-language" />
       <path value="$PROJECT_DIR$/vendor/symfony/security-csrf" />
       <path value="$PROJECT_DIR$/vendor/symfony/mailer" />
@@ -185,6 +184,7 @@
       <path value="$PROJECT_DIR$/vendor/doctrine/data-fixtures" />
       <path value="$PROJECT_DIR$/vendor/symfony/lock" />
       <path value="$PROJECT_DIR$/vendor/symfony/rate-limiter" />
+      <path value="$PROJECT_DIR$/vendor/symfony/maker-bundle" />
     </include_path>
   </component>
   <component name="PhpInterpreters">

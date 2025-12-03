@@ -35,7 +35,12 @@
       "Bash(then echo \".env exists\")",
       "Bash(else echo \".env NOT FOUND\")",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(docker build:*)",
+      "Bash(php -r:*)",
+      "Bash(docker --version:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
