@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     autoconf \
     pkg-config \
     build-essential \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Инсталираме REDIS
@@ -66,7 +67,8 @@ RUN mkdir -p config/jwt var/cache var/log \
 
 # 10. Копираме и настройваме entrypoint скрипт
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN dos2unix /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # 11. Отваряме порт 8000
 EXPOSE 8000
