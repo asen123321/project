@@ -13,6 +13,10 @@ RUN apt-get update && apt-get install -y \
     acl \
     && rm -rf /var/lib/apt/lists/*
 
+# --- НОВОТО: Инсталиране на REDIS (това липсваше!) ---
+RUN pecl install redis \
+    && docker-php-ext-enable redis
+
 # 3. Инсталиране на PHP разширения
 RUN docker-php-ext-install \
     pdo_mysql \
@@ -36,16 +40,16 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# --- ВАЖНАТА ПРОМЯНА Е ТУК ---
-# 7. Инсталиране на ВСИЧКИ пакети (махнахме --no-dev, за да не гърми DebugBundle)
+# 7. Инсталиране на пакетите
+# Тук вече няма да гърми, защото инсталирахме Redis по-горе
 RUN composer install --optimize-autoloader --no-scripts --no-interaction --prefer-dist
 
-# 8. Създаване на JWT папката и ключовете (за да не гърми JWT грешката)
+# 8. Създаване на JWT папката и ключовете
 RUN mkdir -p config/jwt var/cache var/log \
     && chown -R www-data:www-data var config/jwt \
     && chmod -R 777 var config/jwt
 
-# 9. Генериране на JWT ключове автоматично при строежа (трик за Koyeb)
+# 9. Генериране на JWT ключове (ако имаш LexikJWT)
 RUN php bin/console lexik:jwt:generate-keypair --skip-if-exists || true
 
 # 10. Финални настройки
