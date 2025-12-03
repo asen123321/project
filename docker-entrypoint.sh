@@ -6,12 +6,10 @@ echo "Starting Symfony Application Deployment"
 echo "========================================="
 echo ""
 
-echo "Checking .env file..."
-if [ ! -f .env ]; then
-    echo "Creating .env file..."
-    echo 'APP_ENV=prod' > .env
-    echo 'APP_SECRET=${APP_SECRET:-changeme_generate_a_real_secret_key}' >> .env
-    echo 'DATABASE_URL=${DATABASE_URL:-postgresql://user:pass@localhost:5432/dbname}' >> .env
+echo "Checking environment variables..."
+if [ -z "$JWT_PASSPHRASE" ]; then
+    echo "WARNING: JWT_PASSPHRASE environment variable is not set!"
+    echo "Please set JWT_PASSPHRASE in Koyeb environment variables."
 fi
 
 echo "Generating JWT keys if missing..."
@@ -19,10 +17,23 @@ if [ ! -f config/jwt/private.pem ]; then
     echo "JWT keys not found, generating..."
     mkdir -p config/jwt
     chown -R www-data:www-data config/jwt
-    php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction || {
-        echo "WARNING: JWT key generation failed. Ensure JWT_PASSPHRASE is set in Koyeb."
-        echo "Continuing anyway..."
-    }
+    chmod -R 777 config/jwt
+
+    # Generate JWT keypair with passphrase from environment
+    php bin/console lexik:jwt:generate-keypair --skip-if-exists --no-interaction
+
+    if [ $? -eq 0 ]; then
+        echo "JWT keys generated successfully!"
+        chmod 644 config/jwt/public.pem
+        chmod 600 config/jwt/private.pem
+        chown -R www-data:www-data config/jwt
+    else
+        echo "ERROR: JWT key generation failed!"
+        echo "Please check JWT_PASSPHRASE environment variable."
+        exit 1
+    fi
+else
+    echo "JWT keys already exist, skipping generation."
 fi
 
 echo "Clearing cache..."
@@ -30,6 +41,10 @@ php bin/console cache:clear --no-warmup --env=prod || echo "Cache clear failed, 
 
 echo "Warming up cache..."
 php bin/console cache:warmup --env=prod || echo "Cache warmup failed, continuing..."
+
+echo "Fixing permissions..."
+chown -R www-data:www-data var config/jwt
+chmod -R 777 var config/jwt
 
 echo "Running database migrations..."
 php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
@@ -43,7 +58,9 @@ echo "Migrations completed successfully!"
 echo ""
 echo "========================================="
 echo "Application initialization complete!"
-echo "Starting Supervisor..."
+echo "Starting Apache..."
 echo "========================================="
 echo ""
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
+# Start Apache in foreground
+exec apache2-foreground
