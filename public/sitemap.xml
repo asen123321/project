@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <!-- Homepage -->
+    <url>
+        <loc>https://your-domain.com/</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Booking Page -->
+    <url>
+        <loc>https://your-domain.com/booking</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- Services Section (part of homepage) -->
+    <url>
+        <loc>https://your-domain.com/#services</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Team Section (part of homepage) -->
+    <url>
+        <loc>https://your-domain.com/#team</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Gallery Section (part of homepage) -->
+    <url>
+        <loc>https://your-domain.com/#gallery</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Contact Section (part of homepage) -->
+    <url>
+        <loc>https://your-domain.com/#contact</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Login Page (lower priority, but included for completeness) -->
+    <url>
+        <loc>https://your-domain.com/login</loc>
+        <lastmod>2025-12-05</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+    <!--
+    NOTE: Update 'your-domain.com' with your actual domain name
+    This is a static sitemap. For dynamic content, consider using:
+    - presta/sitemap-bundle
+    - symfony/sitemap component
+    -->
+
+</urlset>

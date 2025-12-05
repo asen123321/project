@@ -2,6 +2,90 @@
 
 {% block title %}Elegant Hair Salon - Where Beauty Meets Elegance{% endblock %}
 
+{% block meta_description %}Elegant Hair Salon offers premium hair styling, coloring, cuts, and treatments by expert stylists. Book your appointment today for a luxurious beauty experience in New York.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HairSalon",
+  "name": "Elegant Hair Salon",
+  "image": "{{ absolute_url(asset('images/salon-hero.jpg')) }}",
+  "@id": "{{ absolute_url(path('app_home')) }}",
+  "url": "{{ absolute_url(path('app_home')) }}",
+  "telephone": "(555) 123-4567",
+  "email": "info@elegantsalon.com",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "123 Beauty Street",
+    "addressLocality": "New York",
+    "addressRegion": "NY",
+    "postalCode": "10001",
+    "addressCountry": "US"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 40.7128,
+    "longitude": -74.0060
+  },
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "09:00",
+      "closes": "20:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": "Saturday",
+      "opens": "09:00",
+      "closes": "18:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": "Sunday",
+      "opens": "10:00",
+      "closes": "17:00"
+    }
+  ],
+  "sameAs": [
+    "https://www.facebook.com/elegantsalon",
+    "https://www.instagram.com/elegantsalon",
+    "https://twitter.com/elegantsalon"
+  ],
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.9",
+    "reviewCount": "127"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Elegant Hair Salon",
+  "url": "{{ absolute_url(path('app_home')) }}",
+  "logo": "{{ absolute_url(asset('images/logo.png')) }}",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "(555) 123-4567",
+    "contactType": "customer service",
+    "email": "info@elegantsalon.com",
+    "areaServed": "US",
+    "availableLanguage": ["en"]
+  },
+  "sameAs": [
+    "https://www.facebook.com/elegantsalon",
+    "https://www.instagram.com/elegantsalon",
+    "https://twitter.com/elegantsalon"
+  ]
+}
+</script>
+{% endblock %}
+
 {% block body %}
     {# Hero Section #}
     <section class="hero" id="home">

@@ -1,0 +1,34 @@
+# robots.txt for Elegant Hair Salon
+# Generated for SEO optimization
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /api/
+Disallow: /_profiler
+Disallow: /_wdt
+
+# Allow specific public assets
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /uploads/
+
+# Sitemap location
+Sitemap: https://your-domain.com/sitemap.xml
+
+# Crawl delay for specific bots (optional)
+# User-agent: Googlebot
+# Crawl-delay: 0
+
+# Block bad bots
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: DotBot
+User-agent: MJ12bot
+Disallow: /

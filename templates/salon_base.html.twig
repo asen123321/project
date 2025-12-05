@@ -3,18 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Elegant Hair Salon{% endblock %}</title>
 
-    {# Google Fonts - Poppins & Montserrat #}
+    {# Primary Meta Tags #}
+    <title>{% block title %}Elegant Hair Salon - Where Beauty Meets Elegance{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Elegant Hair Salon offers premium hair styling, coloring, cuts, and treatments by expert stylists. Book your appointment today in New York for a luxurious beauty experience.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}hair salon, hair styling, hair coloring, haircuts, hair treatment, beauty salon, professional stylists, New York salon, elegant hair care{% endblock %}">
+    <meta name="author" content="Elegant Hair Salon">
+
+    {# Canonical URL #}
+    <link rel="canonical" href="{% block canonical_url %}{{ app.request.uri }}{% endblock %}">
+
+    {# Open Graph / Facebook Meta Tags #}
+    <meta property="og:type" content="{% block og_type %}business.business{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ app.request.uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Elegant Hair Salon - Where Beauty Meets Elegance{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Premium hair styling, coloring, and treatments by expert stylists. Experience luxury beauty care at Elegant Hair Salon.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('images/salon-hero.jpg')) }}{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Elegant Hair Salon">
+    <meta property="og:locale" content="en_US">
+
+    {# Twitter Card Meta Tags #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{% block twitter_url %}{{ app.request.uri }}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}Elegant Hair Salon - Premium Hair Care{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Expert hair styling, coloring, and treatments. Book your appointment at New York's premier hair salon.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ absolute_url(asset('images/salon-hero.jpg')) }}{% endblock %}">
+
+    {# Additional SEO Meta Tags #}
+    <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
+    <meta name="googlebot" content="index, follow">
+    <meta name="theme-color" content="#667eea">
+
+    {# Preconnect to improve performance #}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    {# DNS Prefetch for external resources #}
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
+    {# Google Fonts - Poppins & Montserrat #}
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     {# Font Awesome for icons #}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
     {# Custom Salon Styles #}
     <link rel="stylesheet" href="{{ asset('css/salon.css') }}">
+
+    {# Structured Data #}
+    {% block structured_data %}{% endblock %}
 
     {% block stylesheets %}{% endblock %}
 </head>
