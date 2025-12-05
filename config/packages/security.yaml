@@ -29,15 +29,13 @@ security:
             # Logout configuration
             logout:
                 path: app_logout
-                target: app_home
+                target: app_login_page
                 invalidate_session: true
                 enable_csrf: true
-                csrf_parameter: _csrf_token
-                csrf_token_id: logout
 
             # Remember me functionality
             remember_me:
-                secret: '%kernel.secret%'
+                secret: '%env(APP_SECRET)%'
                 lifetime: 604800
                 path: /
                 always_remember_me: true
@@ -54,6 +52,7 @@ security:
 
         # Public routes - HTML pages
         - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }

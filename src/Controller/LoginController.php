@@ -146,15 +146,18 @@ class LoginController extends AbstractController
             // Log the user into the session after registration
             $user = $userRepository->findOneBy(['email' => $data['email']]);
             if ($user) {
-                // Start session if not already started
+                // Manually log in the user by setting the security token
                 $session = $request->getSession();
-                if (!$session->isStarted()) {
-                    $session->start();
-                }
+                $session->start();
 
+                // Create authentication token
                 $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
-                $tokenStorage->setToken($token);
+
+                // Store in session with proper key
                 $session->set('_security_main', serialize($token));
+
+                // Regenerate session ID for security
+                $session->migrate(true);
             }
 
             return $this->json([
@@ -173,7 +176,7 @@ class LoginController extends AbstractController
         Request               $request,
         AuthService           $authService,
         UserRepository        $userRepository,
-        TokenStorageInterface $tokenStorage
+        UserPasswordHasherInterface $passwordHasher
     ): JsonResponse
     {
         try {
@@ -204,25 +207,39 @@ class LoginController extends AbstractController
                 }
             }
 
-            $grpcReq = new LoginRequest();
-            $grpcReq->setEmail($data['email'] ?? '');
-            $grpcReq->setPassword($data['password'] ?? '');
+            $email = $data['email'] ?? '';
+            $password = $data['password'] ?? '';
 
+            // Find user
+            $user = $userRepository->findOneBy(['email' => $email]);
+
+            if (!$user) {
+                return $this->json(['error' => 'Invalid credentials'], 401);
+            }
+
+            // Verify password
+            if (!$passwordHasher->isPasswordValid($user, $password)) {
+                return $this->json(['error' => 'Invalid credentials'], 401);
+            }
+
+            // Call gRPC service for token generation
+            $grpcReq = new LoginRequest();
+            $grpcReq->setEmail($email);
+            $grpcReq->setPassword($password);
             $response = $authService->Login(new Context([]), $grpcReq);
 
-            // Log the user into the session after API login
-            $user = $userRepository->findOneBy(['email' => $data['email']]);
-            if ($user) {
-                // Start session if not already started
-                $session = $request->getSession();
-                if (!$session->isStarted()) {
-                    $session->start();
-                }
+            // Manually log in the user by setting the security token
+            $session = $request->getSession();
+            $session->start();
 
-                $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
-                $tokenStorage->setToken($token);
-                $session->set('_security_main', serialize($token));
-            }
+            // Create authentication token
+            $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
+
+            // Store in session with proper key
+            $session->set('_security_main', serialize($token));
+
+            // Regenerate session ID for security
+            $session->migrate(true);
 
             return $this->json([
                 'status' => 'success',
@@ -279,7 +296,11 @@ class LoginController extends AbstractController
     }
 
     #[Route('/api/google-login', methods: ['POST'])]
-    public function googleLoginApi(Request $request, AuthService $authService): JsonResponse
+    public function googleLoginApi(
+        Request $request,
+        AuthService $authService,
+        UserRepository $userRepository
+    ): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
@@ -319,9 +340,33 @@ class LoginController extends AbstractController
 
             $response = $authService->GoogleLogin(new Context([]), $grpcReq);
 
+            // Extract email from Google token to find user
+            $client = new \Google\Client(['client_id' => $_ENV['GOOGLE_CLIENT_ID'] ?? '']);
+            $payload = $client->verifyIdToken($tokenFromBrowser);
+
+            if ($payload && isset($payload['email'])) {
+                $user = $userRepository->findOneBy(['email' => $payload['email']]);
+
+                if ($user) {
+                    // Manually log in the user by setting the security token
+                    $session = $request->getSession();
+                    $session->start();
+
+                    // Create authentication token
+                    $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
+
+                    // Store in session with proper key
+                    $session->set('_security_main', serialize($token));
+
+                    // Regenerate session ID for security
+                    $session->migrate(true);
+                }
+            }
+
             return $this->json([
                 'status' => 'success',
-                'app_token' => $response->getAppToken()
+                'app_token' => $response->getAppToken(),
+                'redirect_url' => $this->generateUrl('booking_index')
             ]);
 
         } catch (\Throwable $e) {

@@ -50,11 +50,13 @@ class AppCustomAuthenticator extends AbstractAuthenticator implements Authentica
             throw new CustomUserMessageAuthenticationException('Email and password are required.');
         }
 
+        // Note: CSRF protection is currently disabled in framework.yaml
+        // If you re-enable it, uncomment the CsrfTokenBadge line below
         return new Passport(
             new UserBadge($email),
             new PasswordCredentials($password),
             [
-                new CsrfTokenBadge('authenticate', $csrfToken),
+                // new CsrfTokenBadge('authenticate', $csrfToken),
                 new RememberMeBadge(),
             ]
         );

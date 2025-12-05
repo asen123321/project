@@ -47,7 +47,9 @@
       "Bash(git revert:*)",
       "Bash(mysql --version:*)",
       "Bash(cat:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker start:*)"
     ],
     "deny": [],
     "ask": []

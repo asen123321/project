@@ -6,8 +6,12 @@
     {# Load reCAPTCHA v3 #}
     <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
     {% endif %}
+
+    {# Load Google Sign-In Library #}
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
-        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; padding: 20px; }
         .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
         h1 { color: #333; margin-bottom: 0.5rem; }
         p { color: #666; margin-bottom: 1.5rem; }
@@ -30,6 +34,7 @@
         .links a:hover { text-decoration: underline; }
         .recaptcha-notice { font-size: 0.75rem; color: #666; margin-top: 1rem; line-height: 1.4; }
         .recaptcha-notice a { color: #007bff; }
+        #google-signin-button { display: flex; justify-content: center; margin-top: 1rem; }
     </style>
 </head>
 <body>
@@ -49,7 +54,7 @@
         <div class="flash-message flash-success">{{ message }}</div>
     {% endfor %}
 
-    {# Login Form - Now using JavaScript with reCAPTCHA #}
+    {# Login Form - Using JavaScript with reCAPTCHA #}
     <form id="loginForm">
         <div class="form-group">
             <input type="email" value="{{ last_username }}" name="email" id="inputEmail" placeholder="Email Address" required autofocus>
@@ -66,3 +71,145 @@
         <a href="/register">Create Account</a>
     </div>
 
+    <div class="divider">OR</div>
+
+    {# Google Sign-In Button #}
+    <div id="google-signin-button"></div>
+
+    {% if recaptcha_enabled %}
+    <div class="recaptcha-notice">
+        This site is protected by reCAPTCHA and the Google
+        <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+        <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const recaptchaEnabled = {{ recaptcha_enabled ? 'true' : 'false' }};
+    const recaptchaSiteKey = '{{ recaptcha_site_key }}';
+    const googleClientId = '{{ google_client_id }}';
+
+    // Regular Login Form Handler
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const loginBtn = document.getElementById('loginBtn');
+        const originalText = loginBtn.textContent;
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+
+        try {
+            const email = document.getElementById('inputEmail').value;
+            const password = document.getElementById('inputPassword').value;
+
+            let requestBody = { email, password };
+
+            // Get reCAPTCHA token if enabled
+            if (recaptchaEnabled && typeof grecaptcha !== 'undefined') {
+                try {
+                    const token = await grecaptcha.execute(recaptchaSiteKey, { action: 'login' });
+                    requestBody.recaptcha_token = token;
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                }
+            }
+
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'success') {
+                // Redirect to the booking page
+                window.location.href = data.redirect_url || '/home';
+            } else {
+                showError(data.error || 'Login failed. Please try again.');
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
+            }
+        } catch (error) {
+            showError('Network error. Please try again.');
+            loginBtn.disabled = false;
+            loginBtn.textContent = originalText;
+        }
+    });
+
+    // Google Sign-In Handler
+    function handleGoogleSignIn(response) {
+        const token = response.credential;
+
+        if (!token) {
+            showError('Google sign-in failed. Please try again.');
+            return;
+        }
+
+        loginWithGoogle(token);
+    }
+
+    async function loginWithGoogle(token) {
+        try {
+            let requestBody = { token };
+
+            // Get reCAPTCHA token if enabled
+            if (recaptchaEnabled && typeof grecaptcha !== 'undefined') {
+                try {
+                    const recaptchaToken = await grecaptcha.execute(recaptchaSiteKey, { action: 'google_login' });
+                    requestBody.recaptcha_token = recaptchaToken;
+                } catch (error) {
+                    console.error('reCAPTCHA error:', error);
+                }
+            }
+
+            const response = await fetch('/api/google-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'success') {
+                window.location.href = data.redirect_url || '/home';
+            } else {
+                showError(data.error || 'Google login failed. Please try again.');
+            }
+        } catch (error) {
+            showError('Network error during Google login. Please try again.');
+        }
+    }
+
+    // Initialize Google Sign-In
+    if (googleClientId) {
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: googleClientId,
+                callback: handleGoogleSignIn
+            });
+
+            google.accounts.id.renderButton(
+                document.getElementById('google-signin-button'),
+                {
+                    theme: 'outline',
+                    size: 'large',
+                    width: 350,
+                    text: 'signin_with'
+                }
+            );
+        };
+    }
+
+    function showError(message) {
+        const container = document.getElementById('error-container');
+        container.innerHTML = `<div class="error-message">${message}</div>`;
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>

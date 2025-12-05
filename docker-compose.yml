@@ -1,14 +1,16 @@
 services:
   php:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile
+      context: . # ⬅️ ФИКС: Контекстът е коренът на проекта
+      dockerfile: Dockerfile # ⬅️ Търсенето на Dockerfile започва от корена
     ports:
-      - "9001:9001"
+      - "8000:8000"
     volumes:
-      - ./:/var/www/symfony
+      - ./:/var/www/html
     networks:
       - symfony_network
+    env_file:
+      - .env
     environment:
       DATABASE_URL: "mysql://symfony2:symfony@mysql:3306/symfony2?serverVersion=8.0"
       MAILER_DSN: "gmail+smtp://asem4o%40gmail.com:njdrjpllwjoyggdc@default"
@@ -25,12 +27,14 @@ services:
   # Dedicated Worker Container - Processes async jobs (emails, notifications, etc.)
   worker:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile
+      context: . # ⬅️ ФИКС: Контекстът е коренът на проекта
+      dockerfile: Dockerfile # ⬅️ Търсенето на Dockerfile започва от корена
     volumes:
-      - ./:/var/www/symfony
+      - ./:/var/www/html
     networks:
       - symfony_network
+    env_file:
+      - .env
     environment:
       DATABASE_URL: "mysql://symfony2:symfony@mysql:3306/symfony2?serverVersion=8.0"
       MAILER_DSN: "gmail+smtp://asem4o%40gmail.com:njdrjpllwjoyggdc@default"
@@ -61,8 +65,8 @@ services:
       - "80:80"
       - "9090:9090"
     volumes:
-      - ./:/var/www/symfony
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./:/var/www/html
+      - ./default.conf:/etc/nginx/conf.d/default.conf # ⬅️ ФИКС: Взима файла от корена
     depends_on:
       - php
     networks:
@@ -117,7 +121,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
       POSTGRES_USER: ${POSTGRES_USER:-app}
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTES_USER:-app}"]
       timeout: 5s
       retries: 5
       start_period: 60s
