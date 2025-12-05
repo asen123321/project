@@ -125,7 +125,7 @@
 
             if (response.ok && data.status === 'success') {
                 // Redirect to the booking page
-                window.location.href = data.redirect_url || '/home';
+                window.location.href = data.redirect_url || '/booking';
             } else {
                 showError(data.error || 'Login failed. Please try again.');
                 loginBtn.disabled = false;
@@ -173,7 +173,7 @@
             const data = await response.json();
 
             if (response.ok && data.status === 'success') {
-                window.location.href = data.redirect_url || '/home';
+                window.location.href = data.redirect_url || '/booking';
             } else {
                 showError(data.error || 'Google login failed. Please try again.');
             }

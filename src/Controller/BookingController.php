@@ -110,6 +110,88 @@ class BookingController extends AbstractController
         return $this->json($events);
     }
 
+    #[Route('/api/occupied-slots', name: 'booking_occupied_slots', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function occupiedSlots(Request $request): JsonResponse
+    {
+        $stylistId = $request->query->get('stylist_id');
+        $date = $request->query->get('date');
+
+        if (!$stylistId || !$date) {
+            return $this->json(['error' => 'Missing required parameters'], 400);
+        }
+
+        $stylist = $this->stylistRepository->find($stylistId);
+        if (!$stylist) {
+            return $this->json(['error' => 'Invalid stylist'], 404);
+        }
+
+        try {
+            $selectedDate = new \DateTime($date);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Invalid date format'], 400);
+        }
+
+        // Get all confirmed bookings for this stylist on this date
+        $bookings = $this->bookingRepository->findByStylistAndDate($stylist, $selectedDate);
+
+        $occupiedSlots = [];
+        foreach ($bookings as $booking) {
+            $occupiedSlots[] = $booking->getBookingDate()->format('H:i');
+        }
+
+        return $this->json(['occupiedSlots' => $occupiedSlots]);
+    }
+
+    #[Route('/api/user-bookings', name: 'booking_user_bookings', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function userBookings(Request $request): JsonResponse
+    {
+        $startDate = $request->query->get('start');
+        $endDate = $request->query->get('end');
+
+        if (!$startDate || !$endDate) {
+            return $this->json(['error' => 'Missing start or end date'], 400);
+        }
+
+        try {
+            $start = new \DateTime($startDate);
+            $end = new \DateTime($endDate);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Invalid date format'], 400);
+        }
+
+        $bookings = $this->bookingRepository->createQueryBuilder('b')
+            ->leftJoin('b.stylist', 's')
+            ->leftJoin('b.service', 'srv')
+            ->addSelect('s', 'srv')
+            ->where('b.user = :user')
+            ->andWhere('b.bookingDate BETWEEN :start AND :end')
+            ->andWhere('b.status != :cancelled')
+            ->setParameter('user', $this->getUser())
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->setParameter('cancelled', Booking::STATUS_CANCELLED)
+            ->orderBy('b.bookingDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $result = [];
+        foreach ($bookings as $booking) {
+            $result[] = [
+                'id' => $booking->getId(),
+                'date' => $booking->getBookingDate()->format('Y-m-d'),
+                'time' => $booking->getBookingDate()->format('H:i'),
+                'service' => $booking->getService() ? $booking->getService()->getName() : 'N/A',
+                'stylist' => $booking->getStylist() ? $booking->getStylist()->getName() : 'N/A',
+                'price' => $booking->getService() ? $booking->getService()->getPrice() : 0,
+                'status' => $booking->getStatus(),
+            ];
+        }
+
+        return $this->json(['bookings' => $result]);
+    }
+
     #[Route('/api/available-slots', name: 'booking_available_slots', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function availableSlots(Request $request): JsonResponse

@@ -1,42 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Booking Calendar - Hair Salon</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script src='/js/fullcalendar.min.js'></script>
+    <title>Book Your Appointment - Hair Salon</title>
 
     {% if recaptcha_enabled %}
-        {# Load reCAPTCHA v3 #}
-        <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
     {% endif %}
 
     <style>
-        /* FullCalendar Event Styles - Make Events Clickable */
-        .fc-event,
-        .fc-event-main {
-            cursor: pointer !important;
-            pointer-events: auto !important;
-        }
-
-        .fc-event:hover:not([data-type="busy"]) {
-            opacity: 0.9;
-            transform: scale(1.02);
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .fc-event[data-type="busy"] {
-            cursor: not-allowed !important;
-        }
-
-        /* Ensure event content doesnt block clicks */
-        .fc-event-title,
-        .fc-event-time {
-            pointer-events: none;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -44,23 +17,24 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .header {
             background: white;
             padding: 25px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -68,768 +42,1936 @@
 
         .header h1 {
             font-size: 28px;
+            font-weight: 700;
             color: #333;
-            margin: 0;
         }
 
-        .header-buttons {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn {
+        .btn-back {
             padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-        }
-
-        .btn-primary {
             background: #667eea;
             color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
 
-        .btn-primary:hover {
+        .btn-back:hover {
             background: #5568d3;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-danger {
-            background: #dc3545;
+        .btn-my-bookings {
+            padding: 12px 24px;
+            background: #28a745;
             color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-left: 10px;
         }
 
-        .btn-danger:hover {
-            background: #c82333;
+        .btn-my-bookings:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
         }
 
-        .btn-success {
+        .booking-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .booking-steps {
+            display: flex;
+            padding: 30px;
+            gap: 20px;
+            background: linear-gradient(to bottom, #f8f9fa, white);
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .step.completed .step-number {
             background: #28a745;
             color: white;
         }
 
-        .btn-success:hover {
-            background: #218838;
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6c757d;
         }
 
-        .calendar-wrapper {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        #calendar {
-            min-height: 700px;
-        }
-
-        .fc-button {
-            background: #667eea !important;
-            border-color: #667eea !important;
-        }
-
-        .fc-button:hover {
-            background: #5568d3 !important;
-            border-color: #5568d3 !important;
-        }
-
-        .fc-button-active {
-            background: #4c51bf !important;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 700px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: slideIn 0.3s;
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px 30px;
-            border-radius: 16px 16px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .close {
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-            transition: transform 0.2s;
-        }
-
-        .close:hover {
-            transform: scale(1.2);
-        }
-
-        .modal-body {
-            padding: 30px;
-        }
-
-        .booking-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            border-left: 4px solid #667eea;
-        }
-
-        .booking-info-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .booking-info-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .booking-info-item strong {
-            min-width: 120px;
+        .step.active .step-title {
             color: #667eea;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .booking-content {
+            padding: 40px;
         }
 
-        .form-group label {
+        .section {
+            display: none;
+        }
+
+        .section.active {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        /* Week Navigation */
+        .week-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .nav-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #667eea;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .week-display {
+            text-align: center;
+        }
+
+        .week-display h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .week-display p {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        /* Date Grid */
+        .date-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .date-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .date-card:hover:not(.disabled) {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .date-card.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .date-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f8f9fa;
+        }
+
+        .date-day {
+            font-size: 12px;
             font-weight: 600;
-            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
         }
 
-        .form-group select,
-        .form-group textarea {
+        .date-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .date-month {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Service & Stylist Cards */
+        .select-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .select-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .select-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .select-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(to bottom right, #f8f9ff, white);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .select-card.selected::before {
+            content: "✓";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .select-card h4 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .select-card p {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .select-card .price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            margin-top: 10px;
+        }
+
+        /* Time Slots Grid */
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 30px;
+        }
+
+        .time-slot {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .time-slot:hover:not(.unavailable) {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .time-slot.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .time-slot.unavailable {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #f8f9fa;
+            text-decoration: line-through;
+        }
+
+        /* Navigation Buttons */
+        .section-nav {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Summary Section */
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card h3 {
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-weight: 700;
+        }
+
+        .notes-input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
             font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s ease;
         }
 
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .notes-input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .service-option {
-            padding: 8px;
-        }
-
-        .modal-footer {
-            padding: 20px 30px;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-
         .alert {
             padding: 15px 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 20px;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .alert-success {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #c3e6cb;
         }
 
         .alert-error {
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #f5c6cb;
         }
 
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .loading-spinner {
+        .loading {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border: 3px solid rgba(255, 255, 255, .3);
             border-radius: 50%;
             border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
-        .stylist-info {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 14px;
-            line-height: 1.6;
+        .loading-message {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 16px;
         }
 
-        .stylist-info strong {
+        .error-message {
+            text-align: center;
+            padding: 30px;
+            color: #dc3545;
+            font-size: 15px;
+            background: #f8d7da;
+            border-radius: 12px;
+            border: 2px solid #f5c6cb;
+        }
+
+        /* Success Calendar View */
+        .success-view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .success-view.active {
+            display: block;
+        }
+
+        .success-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(40, 167, 69, 0.3);
+        }
+
+        .success-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .success-header .checkmark {
+            width: 80px;
+            height: 80px;
+            background: white;
+            color: #28a745;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .success-header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .calendar-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .calendar-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f8f9fa;
             color: #667eea;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #6c757d;
+            padding: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 8px;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .calendar-day.today {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .calendar-day.booked {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-color: #28a745;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.05); }
+            50% { transform: scale(1.08); }
+        }
+
+        .calendar-day-number {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .calendar-day-time {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.95;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .booking-details-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .booking-details-card h4 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .detail-value {
+            font-weight: 700;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .success-actions .btn {
+            flex: 1;
+        }
+
+        /* My Bookings Modal */
+        .my-bookings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .my-bookings-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .my-bookings-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            background: #dc3545;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .my-bookings-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .my-bookings-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .my-bookings-header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .no-bookings {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-bookings-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .no-bookings h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .no-bookings p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .date-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .my-bookings-content {
+                padding: 30px;
+            }
         }
 
         @media (max-width: 768px) {
-            .modal-content {
-                margin: 10% auto;
-                width: 95%;
+            .booking-steps {
+                padding: 20px 15px;
+                gap: 10px;
             }
 
-            .modal-header h2 {
+            .step-number {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .step-title {
+                font-size: 11px;
+            }
+
+            .booking-content {
+                padding: 25px 20px;
+            }
+
+            .date-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .time-slots-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .select-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-nav {
+                flex-direction: column-reverse;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 22px;
+                text-align: center;
+            }
+
+            .header > div {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn-my-bookings,
+            .btn-back {
+                width: 100%;
+                text-align: center;
+                margin-left: 0;
+            }
+
+            /* My Bookings Modal Responsive */
+            .my-bookings-modal {
+                padding: 10px;
+            }
+
+            .my-bookings-content {
+                padding: 20px;
+                max-height: 95vh;
+            }
+
+            .my-bookings-header {
+                padding: 20px;
+            }
+
+            .my-bookings-header h2 {
+                font-size: 22px;
+            }
+
+            .calendar-grid {
+                gap: 5px;
+            }
+
+            .calendar-day {
+                padding: 4px;
+                font-size: 12px;
+            }
+
+            .calendar-day-number {
+                font-size: 14px;
+                margin-bottom: 2px;
+            }
+
+            .calendar-day-time {
+                font-size: 9px;
+                padding: 2px 4px;
+            }
+
+            .calendar-day-header {
+                font-size: 11px;
+                padding: 5px 0;
+            }
+
+            .modal-close {
+                top: 10px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .date-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .my-bookings-content {
+                padding: 15px;
+            }
+
+            .my-bookings-header {
+                padding: 15px;
+            }
+
+            .my-bookings-header h2 {
                 font-size: 20px;
             }
 
-            .booking-info-item {
-                flex-direction: column;
-                align-items: flex-start;
+            .my-bookings-header p {
+                font-size: 12px;
+            }
+
+            .calendar-header h3 {
+                font-size: 18px;
+            }
+
+            .calendar-day-number {
+                font-size: 12px;
+            }
+
+            .calendar-day-time {
+                font-size: 8px;
+                padding: 1px 3px;
+            }
+
+            .booking-list-item {
+                padding: 15px !important;
+            }
+
+            .booking-list-item h4 {
+                font-size: 16px !important;
+            }
+
+            .booking-details-grid {
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+                font-size: 13px !important;
             }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>💇‍♀️ Hair Salon Booking Calendar</h1>
-    </div>
-
-    <div class="calendar-wrapper">
-        <div id="calendar"></div>
-    </div>
-</div>
-
-<div id="bookingModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>📅 Book Appointment</h2>
-            <span class="close">&times;</span>
+    <div class="container">
+        <div class="header">
+            <h1>Book Your Appointment</h1>
+            <div>
+                <button class="btn-my-bookings" id="openMyBookings">📅 My Bookings</button>
+                <a href="/" class="btn-back">← Back to Home</a>
+            </div>
         </div>
-        <div class="modal-body">
-            <div id="modal-alert"></div>
 
-            <div class="booking-info">
-                <div class="booking-info-item">
-                    <strong>📅 Date & Time:</strong>
-                    <span id="modal-datetime"></span>
+        <div class="booking-card">
+            <!-- Progress Steps -->
+            <div class="booking-steps">
+                <div class="step active" id="step-1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Select Date</div>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Choose Service</div>
+                </div>
+                <div class="step" id="step-3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Select Stylist</div>
+                </div>
+                <div class="step" id="step-4">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Pick Time</div>
+                </div>
+                <div class="step" id="step-5">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Confirm</div>
                 </div>
             </div>
 
-            <form id="modalBookingForm">
-                <div class="form-group">
-                    <label for="modal-stylist">Select Stylist *</label>
-                    <select id="modal-stylist" required>
-                        <option value="">Choose your stylist...</option>
-                        {% for stylist in stylists %}
-                            <option value="{{ stylist.id }}"
-                                    data-specialization="{{ stylist.specialization }}"
-                                    data-bio="{{ stylist.bio }}">
-                                {{ stylist.name }} - {{ stylist.specialization }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <div id="stylist-info" class="stylist-info" style="display: none;"></div>
+            <!-- Booking Content -->
+            <div class="booking-content">
+                <div id="alert-container"></div>
+
+                <!-- Section 1: Select Date -->
+                <div class="section active" id="section-1">
+                    <h2 class="section-title">Select a Date</h2>
+
+                    <div class="week-navigation">
+                        <button class="nav-btn" id="prevWeek">←</button>
+                        <div class="week-display">
+                            <h3 id="currentMonth">Loading...</h3>
+                            <p id="weekRange">Loading...</p>
+                        </div>
+                        <button class="nav-btn" id="nextWeek">→</button>
+                    </div>
+
+                    <div class="date-grid" id="dateGrid">
+                        <!-- Dates will be populated by JavaScript -->
+                    </div>
+
+                    <div class="section-nav">
+                        <button class="btn btn-primary" id="continueToService" disabled>
+                            Continue to Service Selection →
+                        </button>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="modal-service">Select Service *</label>
-                    <select id="modal-service" required disabled style="opacity: 0.6; cursor: not-allowed;">
-                        <option value="">First select a stylist...</option>
+                <!-- Section 2: Select Service -->
+                <div class="section" id="section-2">
+                    <h2 class="section-title">Select a Service</h2>
+                    <div class="select-grid" id="serviceGrid">
                         {% for service in services %}
-                            {# Collect IDs of stylists who perform this service #}
-                            {% set stylistIds = [] %}
-                            {% for stylist in service.stylists %}
-                                {% set stylistIds = stylistIds|merge([stylist.id]) %}
-                            {% endfor %}
-
-                            <option value="{{ service.id }}"
-                                    data-duration="{{ service.durationMinutes }}"
-                                    data-price="{{ service.price }}"
-                                    data-stylist-ids="{{ stylistIds|json_encode }}"> {{ service.name }} -
-                                ${{ service.price }} ({{ service.durationMinutes }} min)
-                            </option>
+                        <div class="select-card" data-service-id="{{ service.id }}"
+                             data-duration="{{ service.durationMinutes }}"
+                             data-price="{{ service.price }}">
+                            <h4>{{ service.name }}</h4>
+                            <p>Duration: {{ service.durationMinutes }} minutes</p>
+                            <p class="price">${{ service.price }}</p>
+                        </div>
                         {% endfor %}
-                    </select>
+                    </div>
+
+                    <div class="section-nav">
+                        <button class="btn btn-secondary" id="backToDate">← Back</button>
+                        <button class="btn btn-primary" id="continueToStylist" disabled>
+                            Continue to Stylist Selection →
+                        </button>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="modal-notes">Notes (Optional)</label>
-                    <textarea id="modal-notes" placeholder="Any special requests or preferences..."></textarea>
+                <!-- Section 3: Choose Stylist -->
+                <div class="section" id="section-3">
+                    <h2 class="section-title">Choose Your Stylist</h2>
+                    <div class="select-grid" id="stylistGrid">
+                        {% for stylist in stylists %}
+                        <div class="select-card" data-stylist-id="{{ stylist.id }}">
+                            <h4>{{ stylist.name }}</h4>
+                            <p>{{ stylist.specialization }}</p>
+                            <p style="font-size: 13px; margin-top: 10px;">{{ stylist.bio|slice(0, 100) }}...</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="section-nav">
+                        <button class="btn btn-secondary" id="backToService">← Back</button>
+                        <button class="btn btn-primary" id="continueToTime" disabled>
+                            Continue to Time Selection →
+                        </button>
+                    </div>
                 </div>
 
-                <input type="hidden" id="modal-date">
-                <input type="hidden" id="modal-time">
-            </form>
+                <!-- Section 4: Choose Time -->
+                <div class="section" id="section-4">
+                    <h2 class="section-title">Choose Your Time</h2>
+                    <p style="color: #6c757d; margin-bottom: 20px;">
+                        Selected: <strong id="selectedDateDisplay">-</strong>
+                    </p>
+                    <div class="time-slots-grid" id="timeSlots">
+                        <!-- Time slots will be populated by JavaScript -->
+                    </div>
+
+                    <div class="section-nav">
+                        <button class="btn btn-secondary" id="backToStylist">← Back</button>
+                        <button class="btn btn-primary" id="continueToConfirm" disabled>
+                            Continue to Confirmation →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section 5: Confirm Booking -->
+                <div class="section" id="section-5">
+                    <h2 class="section-title">Confirm Your Booking</h2>
+
+                    <div class="summary-card">
+                        <h3>Booking Summary</h3>
+                        <div class="summary-item">
+                            <span class="summary-label">Date:</span>
+                            <span class="summary-value" id="summary-date">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Time:</span>
+                            <span class="summary-value" id="summary-time">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Service:</span>
+                            <span class="summary-value" id="summary-service">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Stylist:</span>
+                            <span class="summary-value" id="summary-stylist">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Duration:</span>
+                            <span class="summary-value" id="summary-duration">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Price:</span>
+                            <span class="summary-value" id="summary-price">-</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <label for="notes" style="display: block; font-weight: 600; margin-bottom: 10px;">
+                            Additional Notes (Optional)
+                        </label>
+                        <textarea id="notes" class="notes-input"
+                                  placeholder="Any special requests or preferences..."></textarea>
+                    </div>
+
+                    <div class="section-nav">
+                        <button class="btn btn-secondary" id="backToTime">← Back</button>
+                        <button class="btn btn-primary" id="confirmBooking">
+                            Confirm Booking ✓
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Success View with Monthly Calendar -->
+                <div class="success-view" id="successView">
+                    <div class="success-header">
+                        <div class="checkmark">✓</div>
+                        <h2>Booking Confirmed!</h2>
+                        <p>Your appointment has been successfully scheduled</p>
+                    </div>
+
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button class="calendar-nav-btn" id="calendarPrev">←</button>
+                            <h3 id="calendarMonth">Loading...</h3>
+                            <button class="calendar-nav-btn" id="calendarNext">→</button>
+                        </div>
+
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Calendar will be rendered by JavaScript -->
+                        </div>
+
+                        <div class="booking-details-card">
+                            <h4>Your Appointment Details</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">Date:</span>
+                                <span class="detail-value" id="final-date">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Time:</span>
+                                <span class="detail-value" id="final-time">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Service:</span>
+                                <span class="detail-value" id="final-service">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Stylist:</span>
+                                <span class="detail-value" id="final-stylist">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value" id="final-duration">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value" id="final-price">-</span>
+                            </div>
+                        </div>
+
+                        <div class="success-actions">
+                            <button class="btn btn-secondary" onclick="window.location.reload()">
+                                Book Another Appointment
+                            </button>
+                            <button class="btn btn-primary" onclick="window.location.href='/'">
+                                Back to Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-danger" onclick="closeModal()">Cancel</button>
-            <button type="button" class="btn btn-success" id="confirmBookingBtn">
-                Confirm Booking
-            </button>
+
+        <!-- My Bookings Modal -->
+        <div class="my-bookings-modal" id="myBookingsModal">
+            <div class="my-bookings-content">
+                <button class="modal-close" id="closeMyBookings">×</button>
+
+                <div class="my-bookings-header">
+                    <h2>My Bookings</h2>
+                    <p>View all your upcoming and past appointments</p>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="calendar-nav-btn" id="myBookingsCalendarPrev">←</button>
+                        <h3 id="myBookingsCalendarMonth">Loading...</h3>
+                        <button class="calendar-nav-btn" id="myBookingsCalendarNext">→</button>
+                    </div>
+
+                    <div class="calendar-grid" id="myBookingsCalendarGrid">
+                        <!-- Calendar will be rendered by JavaScript -->
+                    </div>
+
+                    <div id="myBookingsListContainer"></div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // reCAPTCHA configuration
-    const RECAPTCHA_ENABLED = {{ recaptcha_enabled ? 'true' : 'false' }};
-    const RECAPTCHA_SITE_KEY = '{{ recaptcha_site_key }}';
+    <script>
+        const RECAPTCHA_ENABLED = {{ recaptcha_enabled ? 'true' : 'false' }};
+        const RECAPTCHA_SITE_KEY = '{{ recaptcha_site_key }}';
 
-    let calendar;
-    let selectedSlotInfo = null;
+        // Booking state
+        const bookingData = {
+            date: null,
+            time: null,
+            serviceId: null,
+            stylistId: null,
+            serviceName: null,
+            stylistName: null,
+            duration: null,
+            price: null
+        };
 
-    // Initialize calendar on page load
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
+        let currentWeekStart = new Date();
+        currentWeekStart.setHours(0, 0, 0, 0);
 
-        calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            slotMinTime: '09:00:00',
-            slotMaxTime: '18:00:00',
-            allDaySlot: false,
-            nowIndicator: true,
-            editable: false,
-            selectable: true,
-            selectMirror: true,
-            selectOverlap: false, // Prevent selecting over existing events
-            slotDuration: '00:30:00',
-            eventLongPressDelay: 0,
-            selectLongPressDelay: 0,
+        // Set to start of week (Monday)
+        const day = currentWeekStart.getDay();
+        const diff = currentWeekStart.getDate() - day + (day === 0 ? -6 : 1);
+        currentWeekStart.setDate(diff);
 
-            // Load events from multiple sources
-            eventSources: [
-                // User's own bookings
-                {
-                    events: [
-                        {% for booking in userBookings %}
-                        {
-                            title: '{{ booking.service.name }} with {{ booking.stylist.name }}',
-                            start: '{{ booking.bookingDate|date('Y-m-d H:i:s') }}',
-                            end: '{{ booking.bookingDate|date_modify('+'~booking.service.durationMinutes~' minutes')|date('Y-m-d H:i:s') }}',
-                            backgroundColor: '{{ booking.status == "confirmed" ? "#28a745" : "#6c757d" }}',
-                            borderColor: '{{ booking.status == "confirmed" ? "#28a745" : "#6c757d" }}',
-                            extendedProps: {
-                                bookingId: {{ booking.id }},
-                                status: '{{ booking.status }}',
-                                type: 'own'
-                            }
-                        },
-                        {% endfor %}
-                    ]
-                },
-                // All busy slots (anonymous) to prevent double-booking
-                {
-                    url: '/booking/api/bookings',
-                    method: 'GET',
-                    failure: function (error) {
-                        console.error('Failed to load busy slots:', error);
-                    }
-                }
-            ],
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderWeek();
+            setupNavigationListeners();
+            setupSelectionListeners();
+        });
 
-            // Handle slot selection
-            select: function (info) {
-                openBookingModal(info);
-            },
+        function renderWeek() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            // Prevent selecting over busy slots
-            selectAllow: function (selectInfo) {
-                // Get all events in the calendar
-                const events = calendar.getEvents();
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-                // Check if selection overlaps with any busy event
-                for (let event of events) {
-                    if (event.extendedProps.type === 'busy') {
-                        // Check for overlap
-                        if (selectInfo.start < event.end && selectInfo.end > event.start) {
-                            alert('⚠️ SLOT UNAVAILABLE: This time is already booked. Please select a different time.');
-                            return false; // Prevent selection
-                        }
-                    }
-                }
-                return true; // Allow selection
-            },
+            // Update month display
+            document.getElementById('currentMonth').textContent =
+                monthNames[currentWeekStart.getMonth()] + ' ' + currentWeekStart.getFullYear();
 
-            // Make busy events unclickable
-            eventClick: function (info) {
-                // Prevent default behavior
-                info.jsEvent.preventDefault();
-                info.jsEvent.stopPropagation();
+            // Update week range
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            document.getElementById('weekRange').textContent =
+                `${currentWeekStart.getDate()} - ${weekEnd.getDate()} ${monthNames[weekEnd.getMonth()]}`;
 
-                // Check if this is a busy slot
-                if (info.event.extendedProps.type === 'busy') {
-                    alert('⚠️ This time slot is unavailable. Please choose a different time.');
-                    return false;
+            // Render dates
+            const dateGrid = document.getElementById('dateGrid');
+            dateGrid.innerHTML = '';
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + i);
+
+                const isPast = date < today;
+                const isSelected = bookingData.date === date.toISOString().split('T')[0];
+
+                const dateCard = document.createElement('div');
+                dateCard.className = 'date-card';
+                if (isPast) dateCard.classList.add('disabled');
+                if (isSelected) dateCard.classList.add('selected');
+
+                dateCard.innerHTML = `
+                    <div class="date-day">${dayNames[date.getDay()]}</div>
+                    <div class="date-number">${date.getDate()}</div>
+                    <div class="date-month">${monthNames[date.getMonth()]}</div>
+                `;
+
+                if (!isPast) {
+                    dateCard.onclick = () => selectDate(date);
                 }
 
-                // Check if this is user's own booking
-                if (info.event.extendedProps.type === 'own') {
-                    const bookingId = info.event.extendedProps.bookingId;
-                    const status = info.event.extendedProps.status;
-
-                    // Show booking details
-                    alert(`Your Booking #${bookingId}\nService: ${info.event.title}\nStatus: ${status}\n\nTime: ${info.event.start.toLocaleString()}`);
-                    return false;
-                }
-            },
-
-            // Style events differently based on type
-            eventDidMount: function (info) {
-                const eventType = info.event.extendedProps.type;
-
-                // Add data attribute for CSS
-                if (eventType) {
-                    info.el.setAttribute('data-type', eventType);
-                }
-
-                if (eventType === 'busy') {
-                    // Busy slots - not clickable
-                    info.el.style.cursor = 'not-allowed';
-                    info.el.style.opacity = '0.6';
-                    info.el.title = 'This time slot is unavailable';
-                } else if (eventType === 'own') {
-                    // User's own bookings - clickable
-                    info.el.style.cursor = 'pointer';
-                    info.el.title = `Your booking: ${info.event.title} (Click for details)`;
-                    info.el.style.pointerEvents = 'auto';
-                } else {
-                    // Default - clickable
-                    info.el.style.cursor = 'pointer';
-                    info.el.style.pointerEvents = 'auto';
-                }
-            },
-
-            // Prevent selecting past times
-            selectConstraint: {
-                start: new Date().toISOString()
+                dateGrid.appendChild(dateCard);
             }
-        });
 
-        calendar.render();
-    });
-
-    // Open modal when calendar slot is clicked
-    function openBookingModal(info) {
-        selectedSlotInfo = info;
-
-        // Format date and time for display
-        const startDate = new Date(info.start);
-        const dateStr = startDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        const timeStr = startDate.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
-        // Set modal content
-        document.getElementById('modal-datetime').textContent = `${dateStr} at ${timeStr}`;
-        document.getElementById('modal-date').value = startDate.toISOString().split('T')[0];
-        document.getElementById('modal-time').value = startDate.toTimeString().split(' ')[0].substring(0, 5);
-
-        // Clear previous selections
-        document.getElementById('modalBookingForm').reset();
-        document.getElementById('modal-alert').innerHTML = '';
-        document.getElementById('stylist-info').style.display = 'none';
-
-        // Reset service dropdown state
-        const serviceSelect = document.getElementById('modal-service');
-        serviceSelect.disabled = true;
-        serviceSelect.style.opacity = '0.6';
-        serviceSelect.style.cursor = 'not-allowed';
-        serviceSelect.value = "";
-        serviceSelect.options[0].text = "First select a stylist...";
-
-        // Show modal
-        document.getElementById('bookingModal').style.display = 'block';
-    }
-
-    // Close modal
-    function closeModal() {
-        document.getElementById('bookingModal').style.display = 'none';
-        if (calendar && selectedSlotInfo) {
-            calendar.unselect();
-        }
-        selectedSlotInfo = null;
-    }
-
-    // Close modal when clicking X
-    document.querySelector('.close').onclick = closeModal;
-
-    // Close modal when clicking outside
-    window.onclick = function (event) {
-        const modal = document.getElementById('bookingModal');
-        if (event.target == modal) {
-            closeModal();
-        }
-    }
-
-    // ---------------------------------------------------------
-    // LOGIC FOR STYLIST SELECTION AND SERVICE FILTERING
-    // ---------------------------------------------------------
-    document.getElementById('modal-stylist').addEventListener('change', function () {
-        const option = this.options[this.selectedIndex];
-        const infoDiv = document.getElementById('stylist-info');
-        const serviceSelect = document.getElementById('modal-service');
-
-        // 1. Show Stylist Info
-        if (option.value) {
-            const bio = option.dataset.bio;
-            const specialization = option.dataset.specialization;
-            infoDiv.innerHTML = `<strong>${option.text.split(' - ')[0]}</strong><br>${bio || ''}`;
-            infoDiv.style.display = 'block';
-        } else {
-            infoDiv.style.display = 'none';
+            // Enable/disable navigation buttons
+            document.getElementById('prevWeek').disabled = currentWeekStart <= today;
         }
 
-        // 2. Filter Services
-        const selectedStylistId = parseInt(this.value);
+        function selectDate(date) {
+            // FIX: Use local date string to avoid timezone issues
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            bookingData.date = `${year}-${month}-${day}`;
+            bookingData.time = null; // Reset time when date changes
 
-        // Reset service selection
-        serviceSelect.value = "";
-
-        if (!selectedStylistId) {
-            // Lock service dropdown if no stylist selected
-            serviceSelect.disabled = true;
-            serviceSelect.style.opacity = '0.6';
-            serviceSelect.style.cursor = 'not-allowed';
-            serviceSelect.options[0].text = "First select a stylist...";
-            return;
-        }
-
-        // Unlock service dropdown
-        serviceSelect.disabled = false;
-        serviceSelect.style.opacity = '1';
-        serviceSelect.style.cursor = 'default';
-        serviceSelect.options[0].text = "Choose a service...";
-
-        let hasAvailableServices = false;
-
-        // Iterate through services and show/hide based on stylist
-        Array.from(serviceSelect.options).forEach(opt => {
-            if (opt.value === "") return; // Skip placeholder
-
-            // Get Allowed Stylists from data attribute
-            const allowedStylists = JSON.parse(opt.getAttribute('data-stylist-ids') || '[]');
-
-            if (allowedStylists.includes(selectedStylistId)) {
-                opt.style.display = ''; // Show
-                opt.disabled = false;
-                hasAvailableServices = true;
-            } else {
-                opt.style.display = 'none'; // Hide
-                opt.disabled = true; // For Safari/iOS
-            }
-        });
-
-        // If stylist has no services assigned
-        if (!hasAvailableServices) {
-            serviceSelect.options[0].text = "No services available for this stylist";
-            // Optionally disable again if you want
-            // serviceSelect.disabled = true;
-        }
-    });
-
-    // Handle booking confirmation with availability check
-    document.getElementById('confirmBookingBtn').addEventListener('click', async function () {
-        const alertDiv = document.getElementById('modal-alert');
-        const btn = this;
-
-        // Validate form
-        const stylistId = document.getElementById('modal-stylist').value;
-        const serviceId = document.getElementById('modal-service').value;
-
-        if (!stylistId || !serviceId) {
-            alertDiv.innerHTML = '<div class="alert alert-error">Please select both a stylist and service.</div>';
-            return;
-        }
-
-        const bookingDate = document.getElementById('modal-date').value;
-        const bookingTime = document.getElementById('modal-time').value;
-        const notes = document.getElementById('modal-notes').value;
-
-        // Disable button and show loading
-        btn.disabled = true;
-        btn.innerHTML = '<span class="loading-spinner"></span> Checking availability...';
-
-        try {
-            // Step 1: Check availability first
-            const checkResponse = await fetch(`/booking/api/available-slots?stylist_id=${stylistId}&service_id=${serviceId}&date=${bookingDate}`, {
-                credentials: 'same-origin'
+            // Update UI
+            document.querySelectorAll('.date-card').forEach(card => {
+                card.classList.remove('selected');
             });
+            event.currentTarget.classList.add('selected');
 
-            const slotsData = await checkResponse.json();
+            document.getElementById('continueToService').disabled = false;
+        }
 
-            if (slotsData.error) {
-                throw new Error(slotsData.error);
-            }
-
-            // Check if selected time is still available
-            const isAvailable = slotsData.slots.some(slot => slot.time === bookingTime);
-
-            if (!isAvailable) {
-                alertDiv.innerHTML = '<div class="alert alert-error">⚠️ Sorry! This time slot is no longer available. Please select another time.</div>';
-                btn.disabled = false;
-                btn.innerHTML = 'Confirm Booking';
-
-                // Close modal and unselect on calendar
-                setTimeout(() => {
-                    closeModal();
-                }, 2000);
+        async function loadTimeSlots() {
+            if (!bookingData.serviceId || !bookingData.stylistId || !bookingData.date) {
                 return;
             }
 
-            // Step 2: Generate reCAPTCHA token if enabled
-            let recaptchaToken = null;
+            const container = document.getElementById('timeSlots');
+            container.innerHTML = '<div class="loading-message"><div class="loading" style="display: inline-block; margin-right: 10px;"></div>Loading available times...</div>';
 
-            if (RECAPTCHA_ENABLED) {
-                try {
-                    btn.innerHTML = '<span class="loading-spinner"></span> Verifying security...';
+            // Update selected date display (FIX: Parse as local date)
+            const [year, month, day] = bookingData.date.split('-');
+            const date = new Date(year, month - 1, day);
+            const dateStr = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('selectedDateDisplay').textContent = dateStr;
+
+            // Check if selected date is today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const selectedDate = new Date(year, month - 1, day);
+            selectedDate.setHours(0, 0, 0, 0);
+            const isToday = selectedDate.getTime() === today.getTime();
+
+            try {
+                // Fetch available slots
+                const response = await fetch(
+                    `/booking/api/available-slots?stylist_id=${bookingData.stylistId}&service_id=${bookingData.serviceId}&date=${bookingData.date}`
+                );
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Fetch occupied slots for visual feedback
+                const occupiedResponse = await fetch(
+                    `/booking/api/occupied-slots?stylist_id=${bookingData.stylistId}&date=${bookingData.date}`
+                );
+                const occupiedData = await occupiedResponse.json();
+                const occupiedTimes = new Set(occupiedData.occupiedSlots || []);
+
+                container.innerHTML = '';
+
+                if (data.slots.length === 0) {
+                    container.innerHTML = '<div class="error-message">No available times for this date. Please go back and select another date or stylist.</div>';
+                    return;
+                }
+
+                // Get current time for filtering
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+
+                data.slots.forEach(slot => {
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+
+                    // Parse slot time (HH:mm format)
+                    const [slotHour, slotMinute] = slot.time.split(':').map(Number);
+
+                    // Check if this slot is in the past (only for today)
+                    const isPastSlot = isToday && (
+                        slotHour < currentHour ||
+                        (slotHour === currentHour && slotMinute <= currentMinute)
+                    );
+
+                    // Check if this slot is occupied
+                    const isOccupied = occupiedTimes.has(slot.time);
+
+                    if (isPastSlot || isOccupied) {
+                        timeSlot.classList.add('unavailable');
+                    } else {
+                        if (bookingData.time === slot.time) {
+                            timeSlot.classList.add('selected');
+                        }
+                        timeSlot.onclick = () => selectTime(slot.time, slot.display);
+                    }
+
+                    timeSlot.textContent = slot.display;
+                    container.appendChild(timeSlot);
+                });
+            } catch (error) {
+                container.innerHTML = `<div class="error-message">Error loading times: ${error.message}</div>`;
+            }
+        }
+
+        function selectTime(time, display) {
+            bookingData.time = time;
+
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            document.getElementById('continueToConfirm').disabled = false;
+        }
+
+        function setupSelectionListeners() {
+            // Service selection
+            document.querySelectorAll('[data-service-id]').forEach(card => {
+                card.onclick = function() {
+                    document.querySelectorAll('[data-service-id]').forEach(c =>
+                        c.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    bookingData.serviceId = this.dataset.serviceId;
+                    bookingData.serviceName = this.querySelector('h4').textContent;
+                    bookingData.duration = this.dataset.duration;
+                    bookingData.price = this.dataset.price;
+                    bookingData.time = null; // Reset time when service changes
+
+                    document.getElementById('continueToStylist').disabled = false;
+                };
+            });
+
+            // Stylist selection
+            document.querySelectorAll('[data-stylist-id]').forEach(card => {
+                card.onclick = function() {
+                    document.querySelectorAll('[data-stylist-id]').forEach(c =>
+                        c.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    bookingData.stylistId = this.dataset.stylistId;
+                    bookingData.stylistName = this.querySelector('h4').textContent;
+                    bookingData.time = null; // Reset time when stylist changes
+
+                    document.getElementById('continueToTime').disabled = false;
+                };
+            });
+        }
+
+        function setupNavigationListeners() {
+            // Week navigation
+            document.getElementById('prevWeek').onclick = () => {
+                currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+                renderWeek();
+            };
+
+            document.getElementById('nextWeek').onclick = () => {
+                currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+                renderWeek();
+            };
+
+            // Section navigation
+            document.getElementById('continueToService').onclick = () => showSection(2);
+            document.getElementById('backToDate').onclick = () => showSection(1);
+
+            document.getElementById('continueToStylist').onclick = () => showSection(3);
+            document.getElementById('backToService').onclick = () => showSection(2);
+
+            document.getElementById('continueToTime').onclick = () => {
+                showSection(4);
+                loadTimeSlots();
+            };
+            document.getElementById('backToStylist').onclick = () => showSection(3);
+
+            document.getElementById('continueToConfirm').onclick = () => {
+                updateSummary();
+                showSection(5);
+            };
+            document.getElementById('backToTime').onclick = () => {
+                showSection(4);
+                loadTimeSlots();
+            };
+
+            document.getElementById('confirmBooking').onclick = confirmBooking;
+        }
+
+        function showSection(sectionNumber) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(s => {
+                s.classList.remove('active');
+                s.classList.remove('completed');
+            });
+
+            // Show current section
+            document.getElementById(`section-${sectionNumber}`).classList.add('active');
+            document.getElementById(`step-${sectionNumber}`).classList.add('active');
+
+            // Mark previous steps as completed
+            for (let i = 1; i < sectionNumber; i++) {
+                document.getElementById(`step-${i}`).classList.add('completed');
+            }
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateSummary() {
+            // FIX: Parse as local date
+            const [year, month, day] = bookingData.date.split('-');
+            const date = new Date(year, month - 1, day);
+            const dateStr = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            document.getElementById('summary-date').textContent = dateStr;
+            document.getElementById('summary-time').textContent = bookingData.time;
+            document.getElementById('summary-service').textContent = bookingData.serviceName;
+            document.getElementById('summary-stylist').textContent = bookingData.stylistName;
+            document.getElementById('summary-duration').textContent = `${bookingData.duration} minutes`;
+            document.getElementById('summary-price').textContent = `$${bookingData.price}`;
+        }
+
+        async function confirmBooking() {
+            const btn = document.getElementById('confirmBooking');
+            const alertContainer = document.getElementById('alert-container');
+            alertContainer.innerHTML = '';
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Processing...';
+
+            try {
+                // Generate reCAPTCHA token if enabled
+                let recaptchaToken = null;
+                if (RECAPTCHA_ENABLED && typeof grecaptcha !== 'undefined') {
                     recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, {
                         action: 'booking_create'
                     });
-                } catch (error) {
-                    console.error('reCAPTCHA error:', error);
-                    alertDiv.innerHTML = '<div class="alert alert-error">Security verification failed. Please refresh the page and try again.</div>';
-                    btn.disabled = false;
-                    btn.innerHTML = 'Confirm Booking';
-                    return;
                 }
-            }
 
-            // Step 3: Create booking
-            btn.innerHTML = '<span class="loading-spinner"></span> Creating booking...';
+                const payload = {
+                    stylist_id: bookingData.stylistId,
+                    service_id: bookingData.serviceId,
+                    booking_date: bookingData.date,
+                    booking_time: bookingData.time,
+                    notes: document.getElementById('notes').value
+                };
 
-            const bookingData = {
-                stylist_id: stylistId,
-                service_id: serviceId,
-                booking_date: bookingDate,
-                booking_time: bookingTime,
-                notes: notes
-            };
+                if (RECAPTCHA_ENABLED && recaptchaToken) {
+                    payload.recaptcha_token = recaptchaToken;
+                }
 
-            // Add reCAPTCHA token if enabled
-            if (RECAPTCHA_ENABLED && recaptchaToken) {
-                bookingData.recaptcha_token = recaptchaToken;
-            }
+                const response = await fetch('/booking/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
 
-            const response = await fetch('/booking/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(bookingData)
-            });
+                const result = await response.json();
 
-            const result = await response.json();
-
-            if (result.success) {
-                alertDiv.innerHTML = '<div class="alert alert-success">✓ ' + result.message + '</div>';
-
-                // Reload page after 1.5 seconds to show new booking
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                // Check for reCAPTCHA failure
-                if (response.status === 403 && result.code === 'RECAPTCHA_FAILED') {
-                    alertDiv.innerHTML = '<div class="alert alert-error">⚠️ ' + result.error + '</div>';
+                if (result.success) {
+                    // Show success view with calendar
+                    showSuccessView();
                 } else {
                     throw new Error(result.error || 'Booking failed');
                 }
+            } catch (error) {
+                alertContainer.innerHTML = `<div class="alert alert-error">✗ ${error.message}</div>`;
                 btn.disabled = false;
-                btn.innerHTML = 'Confirm Booking';
+                btn.innerHTML = 'Confirm Booking ✓';
+            }
+        }
+
+        // Calendar state for success view
+        let calendarCurrentMonth = new Date();
+
+        function showSuccessView() {
+            // Hide booking form
+            document.querySelector('.booking-steps').style.display = 'none';
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+            // Show success view
+            document.getElementById('successView').classList.add('active');
+
+            // Populate final details
+            const [year, month, day] = bookingData.date.split('-');
+            const date = new Date(year, month - 1, day);
+            const dateStr = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            document.getElementById('final-date').textContent = dateStr;
+            document.getElementById('final-time').textContent = bookingData.time;
+            document.getElementById('final-service').textContent = bookingData.serviceName;
+            document.getElementById('final-stylist').textContent = bookingData.stylistName;
+            document.getElementById('final-duration').textContent = `${bookingData.duration} minutes`;
+            document.getElementById('final-price').textContent = `$${bookingData.price}`;
+
+            // Set calendar to booked month
+            calendarCurrentMonth = new Date(year, month - 1, 1);
+            renderCalendar();
+
+            // Setup calendar navigation
+            document.getElementById('calendarPrev').onclick = () => {
+                calendarCurrentMonth.setMonth(calendarCurrentMonth.getMonth() - 1);
+                renderCalendar();
+            };
+
+            document.getElementById('calendarNext').onclick = () => {
+                calendarCurrentMonth.setMonth(calendarCurrentMonth.getMonth() + 1);
+                renderCalendar();
+            };
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            // Update header
+            document.getElementById('calendarMonth').textContent =
+                `${monthNames[calendarCurrentMonth.getMonth()]} ${calendarCurrentMonth.getFullYear()}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(calendarCurrentMonth.getFullYear(), calendarCurrentMonth.getMonth(), 1);
+            const lastDay = new Date(calendarCurrentMonth.getFullYear(), calendarCurrentMonth.getMonth() + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            // Get today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Parse booked date
+            const [bookedYear, bookedMonth, bookedDay] = bookingData.date.split('-');
+            const bookedDate = new Date(bookedYear, bookedMonth - 1, bookedDay);
+            bookedDate.setHours(0, 0, 0, 0);
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            dayNames.forEach(dayName => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = dayName;
+                grid.appendChild(header);
+            });
+
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
             }
 
-        } catch (error) {
-            alertDiv.innerHTML = `<div class="alert alert-error">✗ ${error.message}</div>`;
-            btn.disabled = false;
-            btn.innerHTML = 'Confirm Booking';
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDate = new Date(calendarCurrentMonth.getFullYear(), calendarCurrentMonth.getMonth(), day);
+                dayDate.setHours(0, 0, 0, 0);
+
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+
+                // Check if this is today
+                if (dayDate.getTime() === today.getTime()) {
+                    dayCell.classList.add('today');
+                }
+
+                // Check if this is the booked date
+                const isBooked = dayDate.getTime() === bookedDate.getTime();
+                if (isBooked) {
+                    dayCell.classList.add('booked');
+                }
+
+                // Create day number
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'calendar-day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+
+                // Add time if this is the booked date
+                if (isBooked) {
+                    const timeLabel = document.createElement('div');
+                    timeLabel.className = 'calendar-day-time';
+                    timeLabel.textContent = bookingData.time;
+                    dayCell.appendChild(timeLabel);
+                }
+
+                grid.appendChild(dayCell);
+            }
         }
-    });
-</script>
+
+        // My Bookings Modal Functionality
+        let myBookingsCurrentMonth = new Date();
+        let userBookingsData = [];
+
+        document.getElementById('openMyBookings').onclick = function() {
+            document.getElementById('myBookingsModal').classList.add('active');
+            myBookingsCurrentMonth = new Date();
+            loadUserBookings();
+        };
+
+        document.getElementById('closeMyBookings').onclick = function() {
+            document.getElementById('myBookingsModal').classList.remove('active');
+        };
+
+        // Close modal when clicking outside
+        document.getElementById('myBookingsModal').onclick = function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        };
+
+        document.getElementById('myBookingsCalendarPrev').onclick = () => {
+            myBookingsCurrentMonth.setMonth(myBookingsCurrentMonth.getMonth() - 1);
+            renderMyBookingsCalendar();
+        };
+
+        document.getElementById('myBookingsCalendarNext').onclick = () => {
+            myBookingsCurrentMonth.setMonth(myBookingsCurrentMonth.getMonth() + 1);
+            renderMyBookingsCalendar();
+        };
+
+        async function loadUserBookings() {
+            try {
+                const startOfMonth = new Date(myBookingsCurrentMonth.getFullYear(), myBookingsCurrentMonth.getMonth(), 1);
+                const endOfMonth = new Date(myBookingsCurrentMonth.getFullYear(), myBookingsCurrentMonth.getMonth() + 1, 0);
+
+                const response = await fetch(
+                    `/booking/api/user-bookings?start=${startOfMonth.toISOString().split('T')[0]}&end=${endOfMonth.toISOString().split('T')[0]}`
+                );
+                const data = await response.json();
+
+                userBookingsData = data.bookings || [];
+                renderMyBookingsCalendar();
+            } catch (error) {
+                console.error('Error loading user bookings:', error);
+                document.getElementById('myBookingsCalendarGrid').innerHTML =
+                    '<div class="error-message">Error loading bookings. Please try again.</div>';
+            }
+        }
+
+        function renderMyBookingsCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+            // Update header
+            document.getElementById('myBookingsCalendarMonth').textContent =
+                `${monthNames[myBookingsCurrentMonth.getMonth()]} ${myBookingsCurrentMonth.getFullYear()}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(myBookingsCurrentMonth.getFullYear(), myBookingsCurrentMonth.getMonth(), 1);
+            const lastDay = new Date(myBookingsCurrentMonth.getFullYear(), myBookingsCurrentMonth.getMonth() + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            // Get today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Create a map of bookings by date (FIX: Use the date string directly from DB)
+            const bookingsByDate = new Map();
+            userBookingsData.forEach(booking => {
+                // booking.date is already in YYYY-MM-DD format from the backend
+                const bookingDate = booking.date;
+                if (!bookingsByDate.has(bookingDate)) {
+                    bookingsByDate.set(bookingDate, []);
+                }
+                bookingsByDate.get(bookingDate).push(booking);
+            });
+
+            const grid = document.getElementById('myBookingsCalendarGrid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            dayNames.forEach(dayName => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = dayName;
+                grid.appendChild(header);
+            });
+
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDate = new Date(myBookingsCurrentMonth.getFullYear(), myBookingsCurrentMonth.getMonth(), day);
+                dayDate.setHours(0, 0, 0, 0);
+
+                // FIX: Manually construct the date string to avoid timezone issues
+                const year = dayDate.getFullYear();
+                const month = String(dayDate.getMonth() + 1).padStart(2, '0');
+                const dayStr = String(dayDate.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${dayStr}`;
+
+                const dayBookings = bookingsByDate.get(dateStr) || [];
+
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+
+                // Check if this is today
+                if (dayDate.getTime() === today.getTime()) {
+                    dayCell.classList.add('today');
+                }
+
+                // Check if this day has bookings
+                if (dayBookings.length > 0) {
+                    dayCell.classList.add('booked');
+                }
+
+                // Create day number
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'calendar-day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+
+                // Add time if there are bookings
+                if (dayBookings.length > 0) {
+                    dayBookings.forEach(booking => {
+                        const timeLabel = document.createElement('div');
+                        timeLabel.className = 'calendar-day-time';
+                        timeLabel.textContent = booking.time;
+                        dayCell.appendChild(timeLabel);
+                    });
+                }
+
+                grid.appendChild(dayCell);
+            }
+
+            // Render bookings list
+            renderBookingsList();
+        }
+
+        function renderBookingsList() {
+            const container = document.getElementById('myBookingsListContainer');
+
+            if (userBookingsData.length === 0) {
+                container.innerHTML = `
+                    <div class="no-bookings">
+                        <div class="no-bookings-icon">📅</div>
+                        <h3>No bookings found</h3>
+                        <p>You don't have any bookings for this month.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div style="margin-top: 30px;">';
+            html += '<h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #333;">Your Appointments</h3>';
+
+            userBookingsData.forEach(booking => {
+                const [year, month, day] = booking.date.split('-');
+                const date = new Date(year, month - 1, day);
+                const dateStr = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                html += `
+                    <div class="booking-list-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="font-size: 18px; font-weight: 700; margin: 0;">${booking.service}</h4>
+                            <span style="background: rgba(255, 255, 255, 0.2); padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">${booking.status}</span>
+                        </div>
+                        <div class="booking-details-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 14px;">
+                            <div><strong>Date:</strong> ${dateStr}</div>
+                            <div><strong>Time:</strong> ${booking.time}</div>
+                            <div><strong>Stylist:</strong> ${booking.stylist}</div>
+                            <div><strong>Price:</strong> $${booking.price}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+    </script>
 </body>
 </html>

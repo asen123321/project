@@ -17,6 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
@@ -146,18 +147,15 @@ class LoginController extends AbstractController
             // Log the user into the session after registration
             $user = $userRepository->findOneBy(['email' => $data['email']]);
             if ($user) {
-                // Manually log in the user by setting the security token
-                $session = $request->getSession();
-                $session->start();
-
-                // Create authentication token
+                // Properly authenticate the user
                 $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
 
-                // Store in session with proper key
-                $session->set('_security_main', serialize($token));
+                // Set token in token storage
+                $tokenStorage->setToken($token);
 
-                // Regenerate session ID for security
-                $session->migrate(true);
+                // Save token to session
+                $session->set('_security_main', serialize($token));
+                $session->save();
             }
 
             return $this->json([
@@ -173,10 +171,12 @@ class LoginController extends AbstractController
 
     #[Route('/api/login', methods: ['POST'])]
     public function loginApi(
-        Request               $request,
-        AuthService           $authService,
-        UserRepository        $userRepository,
-        UserPasswordHasherInterface $passwordHasher
+        Request $request,
+        AuthService $authService,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        TokenStorageInterface $tokenStorage,
+        SessionInterface $session
     ): JsonResponse
     {
         try {
@@ -196,7 +196,7 @@ class LoginController extends AbstractController
                     token: $recaptchaToken,
                     action: 'login',
                     remoteIp: $request->getClientIp(),
-                    minScore: 0.4  // Lower threshold for login
+                    minScore: 0.4
                 );
 
                 if (!$verification['success']) {
@@ -228,18 +228,15 @@ class LoginController extends AbstractController
             $grpcReq->setPassword($password);
             $response = $authService->Login(new Context([]), $grpcReq);
 
-            // Manually log in the user by setting the security token
-            $session = $request->getSession();
-            $session->start();
-
-            // Create authentication token
+            // Properly authenticate the user using Symfony's security system
             $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
 
-            // Store in session with proper key
-            $session->set('_security_main', serialize($token));
+            // Set token in token storage
+            $tokenStorage->setToken($token);
 
-            // Regenerate session ID for security
-            $session->migrate(true);
+            // Save token to session
+            $session->set('_security_main', serialize($token));
+            $session->save();
 
             return $this->json([
                 'status' => 'success',
@@ -299,7 +296,9 @@ class LoginController extends AbstractController
     public function googleLoginApi(
         Request $request,
         AuthService $authService,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        TokenStorageInterface $tokenStorage,
+        SessionInterface $session
     ): JsonResponse
     {
         try {
@@ -324,7 +323,7 @@ class LoginController extends AbstractController
                     token: $recaptchaToken,
                     action: 'google_login',
                     remoteIp: $request->getClientIp(),
-                    minScore: 0.4  // Lower threshold for social login
+                    minScore: 0.4
                 );
 
                 if (!$verification['success']) {
@@ -348,18 +347,15 @@ class LoginController extends AbstractController
                 $user = $userRepository->findOneBy(['email' => $payload['email']]);
 
                 if ($user) {
-                    // Manually log in the user by setting the security token
-                    $session = $request->getSession();
-                    $session->start();
-
-                    // Create authentication token
+                    // Properly authenticate the user
                     $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
 
-                    // Store in session with proper key
-                    $session->set('_security_main', serialize($token));
+                    // Set token in token storage
+                    $tokenStorage->setToken($token);
 
-                    // Regenerate session ID for security
-                    $session->migrate(true);
+                    // Save token to session
+                    $session->set('_security_main', serialize($token));
+                    $session->save();
                 }
             }
 
