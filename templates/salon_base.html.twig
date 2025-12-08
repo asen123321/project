@@ -46,11 +46,14 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
-    {# Google Fonts - Poppins & Montserrat #}
+    {# Google Fonts - Poppins & Montserrat (Optimized with display=swap) #}
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    {# Font Awesome for icons #}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    {# 👇 ОПТИМИЗАЦИЯ: Font Awesome (Non-blocking loading) #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
 
     {# Custom Salon Styles #}
     <link rel="stylesheet" href="{{ asset('css/salon.css') }}">
@@ -61,288 +64,297 @@
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
-    {# Sticky Navigation #}
-    <nav class="navbar" id="navbar">
-        <div class="container nav-container">
-            <div class="logo">
-                <a href="{{ path('app_home') }}">
-                    <i class="fas fa-scissors"></i>
-                    <span>Elegant</span>
-                </a>
-            </div>
-
-            <div class="nav-toggle" id="navToggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="{{ path('app_home') }}#home" class="nav-link">Home</a></li>
-                <li><a href="{{ path('app_home') }}#services" class="nav-link">Services</a></li>
-                <li><a href="{{ path('app_home') }}#team" class="nav-link">Our Team</a></li>
-                <li><a href="{{ path('app_home') }}#gallery" class="nav-link">Gallery</a></li>
-                <li><a href="{{ path('app_home') }}#contact" class="nav-link">Contact</a></li>
-                <li><a href="{{ path('booking_index') }}" class="nav-link">Calendar/Booking</a></li>
-                <li class="nav-cta" style="display: flex; gap: 10px; align-items: center;">
-                    {% if app.user %}
-                        <a href="{{ path('booking_index') }}" class="nav-link">My Boowwkings</a>
-
-                        {# 👇 ТОВА Е НОВИЯТ ЗАЩИТЕН БУТОН ЗА ИЗХОД (VULN-005) #}
-                        <a href="{{ path('app_logout', {'_csrf_token': csrf_token('logout')}) }}" class="btn-login">
-                            Logout
-                        </a>
-                    {% else %}
-                        <a href="{{ path('app_login_page') }}" class="btn-login">Login / Register</a>
-                    {% endif %}
-                </li>
-            </ul>
+{# Sticky Navigation #}
+<nav class="navbar" id="navbar">
+    <div class="container nav-container">
+        <div class="logo">
+            <a href="{{ path('app_home') }}">
+                <i class="fas fa-scissors"></i>
+                <span>Elegant</span>
+            </a>
         </div>
-    </nav>
 
-    {# Main Content #}
-    <main>
-        {% block body %}{% endblock %}
-    </main>
+        <div class="nav-toggle" id="navToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
 
-    {# Footer #}
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Elegant Hair Salon</h3>
-                    <p>Where beauty meets elegance. Experience premium hair care services in a luxurious atmosphere.</p>
-                    <div class="social-links">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
-                    </div>
-                </div>
+        <ul class="nav-menu" id="navMenu">
+            <li><a href="{{ path('app_home') }}#home" class="nav-link">Home</a></li>
+            <li><a href="{{ path('app_home') }}#services" class="nav-link">Services</a></li>
+            <li><a href="{{ path('app_home') }}#team" class="nav-link">Our Team</a></li>
+            <li><a href="{{ path('app_home') }}#gallery" class="nav-link">Gallery</a></li>
+            <li><a href="{{ path('app_home') }}#contact" class="nav-link">Contact</a></li>
+            <li><a href="{{ path('booking_index') }}" class="nav-link">Calendar/Booking</a></li>
+            <li class="nav-cta" style="display: flex; gap: 10px; align-items: center;">
+                {% if app.user %}
+                    <a href="{{ path('booking_index') }}" class="nav-link">My Bookings</a>
 
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="{{ path('app_home') }}#services">Services</a></li>
-                        <li><a href="{{ path('app_home') }}#team">Our Team</a></li>
-                        <li><a href="{{ path('app_home') }}#gallery">Gallery</a></li>
-                        <li><a href="{{ path('booking_index') }}">Book Appointment</a></li>
-                    </ul>
-                </div>
+                    {# Logout Button #}
+                    <a href="{{ path('app_logout', {'_csrf_token': csrf_token('logout')}) }}" class="btn-login">
+                        Logout
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_login_page') }}" class="btn-login">Login / Register</a>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+</nav>
 
-                <div class="footer-section">
-                    <h4>Contact Us</h4>
-                    <ul class="contact-info">
-                        <li><i class="fas fa-phone"></i> (555) 123-4567</li>
-                        <li><i class="fas fa-envelope"></i> info@elegantsalon.com</li>
-                        <li><i class="fas fa-map-marker-alt"></i> 123 Beauty Street, City</li>
-                    </ul>
-                </div>
+{# Main Content #}
+<main>
+    {% block body %}{% endblock %}
+</main>
 
-                <div class="footer-section">
-                    <h4>Opening Hours</h4>
-                    <ul class="hours">
-                        <li>Monday - Friday: 9:00 AM - 8:00 PM</li>
-                        <li>Saturday: 9:00 AM - 6:00 PM</li>
-                        <li>Sunday: 10:00 AM - 5:00 PM</li>
-                    </ul>
+{# Footer #}
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Elegant Hair Salon</h3>
+                <p>Where beauty meets elegance. Experience premium hair care services in a luxurious atmosphere.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
                 </div>
             </div>
 
-            <div class="footer-bottom">
-                <p>&copy; {{ "now"|date("Y") }} Elegant Hair Salon. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{{ path('app_home') }}#services">Services</a></li>
+                    <li><a href="{{ path('app_home') }}#team">Our Team</a></li>
+                    <li><a href="{{ path('app_home') }}#gallery">Gallery</a></li>
+                    <li><a href="{{ path('booking_index') }}">Book Appointment</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <ul class="contact-info">
+                    <li><i class="fas fa-phone"></i> (555) 123-4567</li>
+                    <li><i class="fas fa-envelope"></i> info@elegantsalon.com</li>
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Beauty Street, City</li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Opening Hours</h4>
+                <ul class="hours">
+                    <li>Monday - Friday: 9:00 AM - 8:00 PM</li>
+                    <li>Saturday: 9:00 AM - 6:00 PM</li>
+                    <li>Sunday: 10:00 AM - 5:00 PM</li>
+                </ul>
             </div>
         </div>
-    </footer>
 
-    {# JavaScript #}
-    <script>
-        // Mobile Navigation Toggle
-        const navToggle = document.getElementById('navToggle');
-        const navMenu = document.getElementById('navMenu');
+        <div class="footer-bottom">
+            <p>&copy; {{ "now"|date("Y") }} Elegant Hair Salon. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>
 
+{# JavaScript #}
+<script>
+    // Mobile Navigation Toggle
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+
+    if(navToggle) {
         navToggle.addEventListener('click', () => {
             navMenu.classList.toggle('active');
             navToggle.classList.toggle('active');
         });
+    }
 
-        // Close mobile menu when clicking on a link
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                navToggle.classList.remove('active');
-            });
+    // Close mobile menu when clicking on a link
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if(navMenu) navMenu.classList.remove('active');
+            if(navToggle) navToggle.classList.remove('active');
         });
+    });
 
-        // Sticky Navigation on Scroll
-        window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbar');
+    // Sticky Navigation on Scroll
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        if (navbar) {
             if (window.scrollY > 100) {
                 navbar.classList.add('scrolled');
             } else {
                 navbar.classList.remove('scrolled');
             }
-        });
+        }
+    });
 
-        // Smooth Scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href !== '#' && href.length > 1) {
-                    e.preventDefault();
-                    const target = document.querySelector(href);
-                    if (target) {
-                        const navHeight = document.querySelector('.navbar').offsetHeight;
-                        const targetPosition = target.offsetTop - navHeight;
-                        window.scrollTo({
-                            top: targetPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                }
-            });
-        });
-
-        // ============================================
-        // GALLERY FILTER FUNCTIONALITY
-        // ============================================
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const galleryItems = document.querySelectorAll('.gallery-item');
-
-        if (filterButtons.length > 0) {
-            filterButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // Remove active class from all buttons
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
-                    button.classList.add('active');
-
-                    const filterValue = button.getAttribute('data-filter');
-
-                    galleryItems.forEach(item => {
-                        const category = item.getAttribute('data-category');
-
-                        if (filterValue === 'all' || category === filterValue) {
-                            item.classList.remove('hidden');
-                            // Fade in animation
-                            item.style.animation = 'fadeInUp 0.5s ease';
-                        } else {
-                            item.classList.add('hidden');
-                        }
+    // Smooth Scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href !== '#' && href.length > 1) {
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    const navbar = document.querySelector('.navbar');
+                    const navHeight = navbar ? navbar.offsetHeight : 0;
+                    const targetPosition = target.offsetTop - navHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
                     });
+                }
+            }
+        });
+    });
+
+    // ============================================
+    // GALLERY FILTER FUNCTIONALITY
+    // ============================================
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+
+    if (filterButtons.length > 0) {
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                const filterValue = button.getAttribute('data-filter');
+
+                galleryItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+
+                    if (filterValue === 'all' || category === filterValue) {
+                        item.classList.remove('hidden');
+                        // Fade in animation
+                        item.style.animation = 'fadeInUp 0.5s ease';
+                    } else {
+                        item.classList.add('hidden');
+                    }
                 });
             });
-        }
+        });
+    }
 
-        // ============================================
-        // LIGHTBOX MODAL FUNCTIONALITY
-        // ============================================
-        const lightboxModal = document.getElementById('lightboxModal');
-        const lightboxClose = document.querySelector('.lightbox-close');
-        const lightboxPrev = document.querySelector('.lightbox-prev');
-        const lightboxNext = document.querySelector('.lightbox-next');
-        const lightboxBeforeImg = document.getElementById('lightboxBeforeImg');
-        const lightboxAfterImg = document.getElementById('lightboxAfterImg');
-        const lightboxTitle = document.getElementById('lightboxTitle');
-        const lightboxCounter = document.getElementById('lightboxCounter');
+    // ============================================
+    // LIGHTBOX MODAL FUNCTIONALITY
+    // ============================================
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxClose = document.querySelector('.lightbox-close');
+    const lightboxPrev = document.querySelector('.lightbox-prev');
+    const lightboxNext = document.querySelector('.lightbox-next');
+    const lightboxBeforeImg = document.getElementById('lightboxBeforeImg');
+    const lightboxAfterImg = document.getElementById('lightboxAfterImg');
+    const lightboxTitle = document.getElementById('lightboxTitle');
+    const lightboxCounter = document.getElementById('lightboxCounter');
 
-        // Gallery data
-        const galleryData = [];
-        let currentIndex = 0;
+    // Gallery data
+    const galleryData = [];
+    let currentIndex = 0;
 
-        // Collect gallery data
-        if (galleryItems.length > 0) {
-            galleryItems.forEach((item, index) => {
-                const beforeImg = item.querySelector('.before-image img');
-                const afterImg = item.querySelector('.after-image img');
-                const title = item.querySelector('.gallery-overlay p');
+    // Collect gallery data
+    if (galleryItems.length > 0) {
+        galleryItems.forEach((item, index) => {
+            const beforeImg = item.querySelector('.before-image img');
+            const afterImg = item.querySelector('.after-image img');
+            const title = item.querySelector('.gallery-overlay p');
 
-                if (beforeImg && afterImg) {
-                    galleryData.push({
-                        before: beforeImg.src,
-                        after: afterImg.src,
-                        title: title ? title.textContent : 'Transformation',
-                        element: item
-                    });
+            if (beforeImg && afterImg) {
+                galleryData.push({
+                    before: beforeImg.src,
+                    after: afterImg.src,
+                    title: title ? title.textContent : 'Transformation',
+                    element: item
+                });
 
-                    // Add click event to gallery item
-                    item.addEventListener('click', () => {
-                        currentIndex = index;
-                        openLightbox();
-                    });
-                }
-            });
-        }
+                // Add click event to gallery item
+                item.addEventListener('click', () => {
+                    currentIndex = index;
+                    openLightbox();
+                });
+            }
+        });
+    }
 
-        function openLightbox() {
-            if (galleryData.length === 0) return;
+    function openLightbox() {
+        if (galleryData.length === 0) return;
 
-            const data = galleryData[currentIndex];
-            lightboxBeforeImg.src = data.before;
-            lightboxAfterImg.src = data.after;
-            lightboxTitle.textContent = data.title;
-            lightboxCounter.textContent = `${currentIndex + 1} / ${galleryData.length}`;
+        const data = galleryData[currentIndex];
+        if(lightboxBeforeImg) lightboxBeforeImg.src = data.before;
+        if(lightboxAfterImg) lightboxAfterImg.src = data.after;
+        if(lightboxTitle) lightboxTitle.textContent = data.title;
+        if(lightboxCounter) lightboxCounter.textContent = `${currentIndex + 1} / ${galleryData.length}`;
 
+        if(lightboxModal) {
             lightboxModal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
+    }
 
-        function closeLightbox() {
+    function closeLightbox() {
+        if(lightboxModal) {
             lightboxModal.classList.remove('active');
             document.body.style.overflow = '';
         }
+    }
 
-        function showPrevious() {
-            currentIndex = (currentIndex - 1 + galleryData.length) % galleryData.length;
-            openLightbox();
-        }
+    function showPrevious() {
+        currentIndex = (currentIndex - 1 + galleryData.length) % galleryData.length;
+        openLightbox();
+    }
 
-        function showNext() {
-            currentIndex = (currentIndex + 1) % galleryData.length;
-            openLightbox();
-        }
+    function showNext() {
+        currentIndex = (currentIndex + 1) % galleryData.length;
+        openLightbox();
+    }
 
-        // Event listeners
-        if (lightboxClose) {
-            lightboxClose.addEventListener('click', closeLightbox);
-        }
+    // Event listeners
+    if (lightboxClose) {
+        lightboxClose.addEventListener('click', closeLightbox);
+    }
 
-        if (lightboxPrev) {
-            lightboxPrev.addEventListener('click', showPrevious);
-        }
+    if (lightboxPrev) {
+        lightboxPrev.addEventListener('click', showPrevious);
+    }
 
-        if (lightboxNext) {
-            lightboxNext.addEventListener('click', showNext);
-        }
+    if (lightboxNext) {
+        lightboxNext.addEventListener('click', showNext);
+    }
 
-        // Close on background click
-        if (lightboxModal) {
-            lightboxModal.addEventListener('click', (e) => {
-                if (e.target === lightboxModal) {
-                    closeLightbox();
-                }
-            });
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (!lightboxModal.classList.contains('active')) return;
-
-            if (e.key === 'Escape') {
+    // Close on background click
+    if (lightboxModal) {
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) {
                 closeLightbox();
-            } else if (e.key === 'ArrowLeft') {
-                showPrevious();
-            } else if (e.key === 'ArrowRight') {
-                showNext();
             }
         });
-    </script>
+    }
 
-    {% block javascripts %}{% endblock %}
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (lightboxModal && !lightboxModal.classList.contains('active')) return;
+
+        if (e.key === 'Escape') {
+            closeLightbox();
+        } else if (e.key === 'ArrowLeft') {
+            showPrevious();
+        } else if (e.key === 'ArrowRight') {
+            showNext();
+        }
+    });
+</script>
+
+{% block javascripts %}{% endblock %}
 </body>
 </html>
