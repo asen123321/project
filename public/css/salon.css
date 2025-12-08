@@ -224,9 +224,9 @@ ul {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(201, 168, 117, 0.8), rgba(184, 144, 123, 0.8)),
-                url('https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1920&h=1080&fit=crop') center/cover no-repeat;
-    background-attachment: fixed;
+    /*background: linear-gradient(135deg, rgba(201, 168, 117, 0.8), rgba(184, 144, 123, 0.8)),*/
+    /*            url('https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1920&h=1080&fit=crop') center/cover no-repeat;*/
+    /*background-attachment: fixed;*/
 }
 
 .hero-overlay {

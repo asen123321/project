@@ -47,7 +47,11 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
     {# Google Fonts - Poppins & Montserrat (Optimized with display=swap) #}
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {# 👇 ОПТИМИЗАЦИЯ: Google Fonts (Non-blocking) #}
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    </noscript>
 
     {# 👇 ОПТИМИЗАЦИЯ: Font Awesome (Non-blocking loading) #}
     {# 👇 ОПТИМИЗАЦИЯ: Font Awesome (Non-blocking) #}
