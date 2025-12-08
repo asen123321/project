@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - Elegant Hair Salon | Customer Login</title>
-
-    {# SEO Meta Tags #}
-    <meta name="description" content="Sign in to your Elegant Hair Salon account to manage bookings, view your appointments, and access exclusive member benefits.">
-    <meta name="robots" content="noindex, nofollow">
-
+    <title>Login</title>
     {% if recaptcha_enabled %}
     {# Load reCAPTCHA v3 #}
     <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>
@@ -16,6 +9,7 @@
 
     {# Load Google Sign-In Library #}
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; padding: 20px; }
         .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }

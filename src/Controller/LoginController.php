@@ -9,6 +9,9 @@ use App\Grpc\Auth\V1\LoginRequest;
 use App\Grpc\Auth\V1\ForgotPasswordRequest;
 use App\Grpc\Auth\V1\ResetPasswordRequest;
 use App\Grpc\Auth\V1\GoogleLoginRequest;
+use App\Repository\GalleryImageRepository;
+use App\Repository\ServiceItemRepository;
+use App\Repository\StylistRepository;
 use App\Repository\UserRepository;
 use App\Service\ReCaptchaService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,7 +45,10 @@ class LoginController extends AbstractController
     // ==========================================
 
     #[Route('/login', name: 'app_login_page')]
-    public function index(AuthenticationUtils $authenticationUtils): Response
+    public function index(AuthenticationUtils $authenticationUtils,
+                          ServiceItemRepository $serviceRepository,
+                          StylistRepository $stylistRepository,GalleryImageRepository $galleryRepository): Response
+
     {
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -55,6 +61,10 @@ class LoginController extends AbstractController
             'google_client_id' => $_ENV['GOOGLE_CLIENT_ID'] ?? '',
             'recaptcha_site_key' => $this->recaptchaService->getSiteKey(),
             'recaptcha_enabled' => $this->recaptchaService->isEnabled(),
+            'services' => $serviceRepository->findAll(),
+            'stylists' => $stylistRepository->findAll(),
+            'galleryImages' => $galleryRepository->findBy([], ['createdAt' => 'DESC']),
+
         ]);
     }
 

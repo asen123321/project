@@ -112,11 +112,17 @@
                 {% for service in services %}
                     <div class="service-card">
                         <div class="service-image">
-                            {# Display service image from Cloudinary #}
-                            <img src="{{ service.imageFilename }}" alt="{{ service.title }}">
+                            {# ТУК Е ПРОМЯНАТА: Добавяме филтъра и srcset #}
+                            <img
+                                    src="{{ service.imageFilename|image_url('service', 400) }}"
+                                    srcset="{{ service.imageFilename|image_url('service', 400) }} 400w,
+                                        {{ service.imageFilename|image_url('service', 800) }} 800w"
+                                    sizes="(max-width: 600px) 100vw, 400px"
+                                    alt="{{ service.title }}"
+                                    loading="lazy"
+                            >
                             <div class="service-overlay">
                                 <div class="service-icon">
-                                    {# Използваме класа от базата, ако има, иначе default #}
                                     <i class="{{ service.iconClass|default('fas fa-cut') }}"></i>
                                 </div>
                             </div>
@@ -141,8 +147,6 @@
                     <p>Няма добавени услуги в момента.</p>
                 {% endfor %}
             </div>
-
-            {# ... CTA бутона отдолу ... #}
         </div>
     </section>
     {# Our Team Section - DYNAMIC DATA FROM DATABASE #}
@@ -150,19 +154,25 @@
         <div class="container">
             <div class="section-header">
                 <h2>Meet Our Team</h2>
-                <p>Experienced professionals dedicated to your beauty</p>
+                <p>DAAA</p>
             </div>
 
             <div class="team-grid">
                 {% for stylist in stylists %}
                     <div class="team-card">
                         <div class="team-image">
-                            {# Display stylist photo from Cloudinary #}
+                            {# ТУК Е ПРОМЯНАТА: Проверка за снимка и добавяне на srcset #}
                             {% if stylist.photoUrl %}
-                                <img src="{{ stylist.photoUrl }}" alt="{{ stylist.name }}">
+                                <img
+                                        src="{{ stylist.photoUrl|image_url('team', 300) }}"
+                                        srcset="{{ stylist.photoUrl|image_url('team', 300) }} 300w,
+                                            {{ stylist.photoUrl|image_url('team', 600) }} 600w"
+                                        sizes="(max-width: 600px) 100vw, 300px"
+                                        alt="{{ stylist.name }}"
+                                        loading="lazy"
+                                >
                             {% else %}
-                                {# Fallback placeholder image if no photo #}
-                                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop" alt="{{ stylist.name }}">
+                                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop" alt="{{ stylist.name }}" loading="lazy">
                             {% endif %}
 
                             <div class="team-overlay">
@@ -179,7 +189,6 @@
                         </div>
                     </div>
                 {% else %}
-                    {# Show this if no stylists in database #}
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
                         <p>Все още няма добавени стилисти в екипа.</p>
                     </div>

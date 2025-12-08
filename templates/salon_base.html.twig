@@ -86,7 +86,7 @@
                 <li><a href="{{ path('booking_index') }}" class="nav-link">Calendar/Booking</a></li>
                 <li class="nav-cta" style="display: flex; gap: 10px; align-items: center;">
                     {% if app.user %}
-                        <a href="{{ path('booking_index') }}" class="nav-link">My Bookings</a>
+                        <a href="{{ path('booking_index') }}" class="nav-link">My Boowwkings</a>
 
                         {# 👇 ТОВА Е НОВИЯТ ЗАЩИТЕН БУТОН ЗА ИЗХОД (VULN-005) #}
                         <a href="{{ path('app_logout', {'_csrf_token': csrf_token('logout')}) }}" class="btn-login">
