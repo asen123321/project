@@ -1,5 +1,16 @@
 {% extends 'salon_base.html.twig' %}
-
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="preload" as="image"
+          href="https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-1.2.1&fm=webp&fit=crop&w=1920&q=50"
+          imagesrcset="
+                https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-1.2.1&fm=webp&fit=crop&w=600&q=50 600w,
+                https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-1.2.1&fm=webp&fit=crop&w=1200&q=50 1200w,
+                https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-1.2.1&fm=webp&fit=crop&w=1920&q=50 1920w
+          "
+          imagesizes="100vw"
+          fetchpriority="high">
+{% endblock %}
 {% block title %}Elegant Hair Salon - Where Beauty Meets Elegance{% endblock %}
 
 {% block meta_description %}Elegant Hair Salon offers premium hair styling, coloring, cuts, and treatments by expert stylists. Book your appointment today for a luxurious beauty experience in New York.{% endblock %}
